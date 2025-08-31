@@ -1,0 +1,68 @@
+BOOT     [000   000   000.000 ns] in system.main : System boot initiated
+INFO     [000   010   000.000 ns] in system.init : Initializing hardware abstraction layer
+INFO     [000   020   000.000 ns] in system.init : Initializing peripherals
+NOTE     [000   030   000.000 ns] in system.uart : UART0 configured at 115200 baud
+NOTE     [000   040   000.000 ns] in system.spi : SPI1 initialized, mode 0
+NOTE     [000   050   000.000 ns] in system.i2c : I2C0 bus ready
+INFO     [000   060   000.000 ns] in system.init : All peripherals initialized
+NOTE     [000   070   000.000 ns] in system.main : Starting scheduler
+ISR      [000   080   000.000 ns] in system.isr : Timer0 interrupt triggered
+NOTE     [000   090   000.000 ns] in system.sensors.temp : Temperature sensor read: 36.7°C
+NOTE     [000   100   000.000 ns] in system.sensors.hum : Humidity sensor read: 41%
+WARNING  [000   110   000.000 ns] in system.sensors.press : Pressure sensor out of range: 1200 hPa
+ERROR    [000   120   000.000 ns] in system.sensors.temp : Temperature sensor CRC error
+NOTE     [000   130   000.000 ns] in system.sensors.temp : Retrying temperature sensor read
+NOTE     [000   140   000.000 ns] in system.sensors.temp : Temperature sensor read: 36.8°C
+NOTE     [000   150   000.000 ns] in system.comm.eth : Ethernet link up, 100Mbps full duplex
+NOTE     [000   160   000.000 ns] in system.comm.eth : DHCP lease acquired: 192.168.1.101
+NOTE     [000   170   000.000 ns] in system.time : RTC synchronized to NTP server
+NOTE     [212 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r2_top : getX4LegChangeDone happened 
+WARNING  [212 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r4_top : getX4LegChangeDone = 0x1008000
+ISR      [214 435 176.000 ns] in system.isr : External interrupt on GPIO17
+ERROR    [214 435 176.000 ns] in top.HHShell.m4_top.mDist_dsp_wait.entry : Kernel changed state to: OUTPUT
+# Leg ok - wait for next
+NOTE00000[226 735 876.000 ns] in top.F4.generics : Calculated load 47%
+NOTE     [232 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r2_top : getX4LegChangeDone happened
+WARNING  [232 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r4_top : getX4LegChangeDone = 0x2008000
+ISR      [234 435 176.000 ns] in system.isr : Timer1 interrupt triggered
+NOTE     [234 435 176.000 ns] in top.HHShell.m4_top.mDist_dsp_wait.entry : Kernel changed state to: LOAD
+NOTE00000[246 735 876.000 ns] in top.F4.generics : Calculated load 45%
+NOTE     [232 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r2_top : getX4LegChangeDone happened
+WARNING  [232 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r4_top : getX4LegChangeDone = 0x3008000
+ISR      [234 435 176.000 ns] in system.isr : ADC conversion complete
+NOTE     [234 435 176.000 ns] in top.HHShell.m4_top.mDist_dsp_wait.entry : Kernel changed state to: OUTPUT
+NOTE00000[246 735 876.000 ns] in top.F4.generics : Calculated load 43%
+NOTE     [252 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r2_top : getX4LegChangeDone happened
+WARNING  [252 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r4_top : getX4LegChangeDone = 0x4008000
+ISR      [254 435 176.000 ns] in system.isr : UART0 RX interrupt
+NOTE     [254 435 176.000 ns] in top.HHShell.m4_top.mDist_dsp_wait.entry : Kernel changed state to: LOAD
+NOTE00000[266 735 876.000 ns] in top.F4.generics : Calculated load 49%
+NOTE     [272 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r2_top : getX4LegChangeDone happened
+WARNING  [272 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r4_top : getX4LegChangeDone = 0x5008000
+ISR      [274 435 176.000 ns] in system.isr : Watchdog timer interrupt
+NOTE     [274 435 176.000 ns] in top.HHShell.m4_top.mDist_dsp_wait.entry : Kernel changed state to: OUTPUT
+NOTE00000[286 735 876.000 ns] in top.F4.generics : Calculated load 39%
+NOTE     [292 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r2_top : getX4LegChangeDone happened
+WARNING  [292 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r4_top : getX4LegChangeDone = 0x6008000
+ISR      [294 435 176.000 ns] in system.isr : GPIO pin change detected
+NOTE     [294 435 176.000 ns] in top.HHShell.m4_top.mDist_dsp_wait.entry : Kernel changed state to: LOAD
+NOTE00000[206 735 876.000 ns] in top.F4.generics : Calculated load 22%
+NOTE     [302 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r2_top : getX4LegChangeDone happened
+WARNING  [302 745 133.974 ns] in top.HHShell.m4_top.mDist_dsp_access.r4_top : getX4LegChangeDone = 0x6008000
+NOTE     [310 000 000.000 ns] in system.sensors.temp : Temperature sensor read: 37.0°C
+NOTE     [320 000 000.000 ns] in system.sensors.hum : Humidity sensor read: 42%
+WARNING  [330 000 000.000 ns] in system.comm.eth : Ethernet link lost
+INFO     [340 000 000.000 ns] in system.comm.eth : Attempting to reconnect Ethernet
+NOTE     [350 000 000.000 ns] in system.comm.eth : Ethernet link up, 100Mbps full duplex
+NOTE     [360 000 000.000 ns] in system.comm.eth : DHCP lease renewed: 192.168.1.101
+ERROR    [370 000 000.000 ns] in system.i2c : I2C0 bus arbitration lost
+NOTE     [380 000 000.000 ns] in system.i2c : I2C0 bus recovery successful
+NOTE     [390 000 000.000 ns] in system.sensors.press : Pressure sensor read: 1013 hPa
+NOTE     [400 000 000.000 ns] in system.sensors.temp : Temperature sensor read: 36.9°C
+ISR      [410 000 000.000 ns] in system.isr : Timer2 interrupt triggered
+NOTE     [420 000 000.000 ns] in system.sensors.temp : Temperature sensor read: 36.8°C
+NOTE     [430 000 000.000 ns] in system.sensors.hum : Humidity sensor read: 43%
+WARNING  [440 000 000.000 ns] in system.sensors.temp : Temperature sensor out of range: 85.0°C
+ERROR    [450 000 000.000 ns] in system.sensors.temp : Temperature sensor failure, shutting down sensor
+NOTE     [460 000 000.000 ns] in system.sensors.temp : Attempting sensor reset
+INFO    

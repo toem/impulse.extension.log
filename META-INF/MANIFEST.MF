@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: impulse Log Extension
+Bundle-SymbolicName: de.toem.impulse.extension.log;singleton:=true
+Bundle-Version: 3.0.2
+Bundle-Activator: de.toem.impulse.extension.log.ImpulseLogExtension
+Require-Bundle: org.eclipse.osgi,
+ de.toem.toolkits.general;bundle-version="3.0.2",
+ de.toem.impulse.base;bundle-version="3.0.2",
+ de.toem.impulse.ui;bundle-version="3.0.2"
+Import-Package: org.eclipse.swt.graphics 
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-Vendor: toem.de
+Bundle-Localization: i18n/i18n
+Bundle-ClassPath: .,
+ jars/jackson-core-2.11.0.rc1.jar,
+ jars/jackson-dataformat-yaml-2.11.0.rc1.jar,
+ jars/snakeyaml-1.26.jar

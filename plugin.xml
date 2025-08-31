@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+<extension
+      point="de.toem.toolkits.general.serializer"> 
+      
+      <serializer
+            class="de.toem.impulse.extension.log.pattern.PatternLogReader">
+      </serializer> 
+          
+      <serializer
+            class="de.toem.impulse.extension.log.xml.XmlLogReader">
+      </serializer>   
+
+      <serializer
+            class="de.toem.impulse.extension.log.json.JsonLogReader">
+      </serializer>  
+      
+      <serializer
+            class="de.toem.impulse.extension.log.yaml.YamlLogReader">
+      </serializer>             
+      <!--      
+      <serializer
+            class="de.toem.impulse.extension.log.csv.CsvReader">
+      </serializer>    
+      -->      
+</extension>
+
+<extension
+		point="de.toem.toolkits.general.templates">
+
+
+    <reader.log.pattern name="FlexNoc" namePattern="simout\.txt">
+        <properties len="1">
+            <domainBase>ps</domainBase>
+        </properties>
+        <reader.log.pattern.option name="Checkpoint" domainSource="2" action="1" s1="4" s2="0" s3="4" s4="0" s5="4" nameSeparator="\/" tagSource="1" pattern="\s*([A-Za-z]+):\s*([0-9]+ \Ss) ([A-Za-z]+CheckPoint):([^:]+):\s*(\S+)\s*:\s*(.*)" member6="Message" member4="Module" member5="Thread" member2="Timestamp" namePrefix="_" member3="Checkpoint" name1Source="4" member1="Level" domainMode="2" nameMode="2">
+            <example>Info:    3298 ns TransportCheckPoint:i_bpu_noc_arch/CPI_Switch_bpu_rd0_I: bwdOutTick               : STATE is IDLE&lt;br/&gt;Info:     112 ns NttpSimpleSlavePort:NTTP(Not initialized): nb_transport_fw          :  phase END_PARTIAL_RESP delay 0 s</example>
+        </reader.log.pattern.option>
+        <reader.log.pattern.option name="NttpSimple" domainSource="2" action="1" s1="4" s2="0" s3="4" s4="0" s5="4" nameSeparator="\/" tagSource="1" pattern="\s*([A-Za-z]+):\s*([0-9]+ \Ss) (NttpSimple[A-Za-z]+):([^:]+):\s*(\S+)\s*:\s*(.*)" member6="Message" member4="Module" member5="Thread" member2="Timestamp" namePrefix="_" member3="Checkpoint" name1Source="4" member1="Level" domainMode="2" nameMode="2">
+            <example>Info:    3298 ns TransportCheckPoint:i_bpu_noc_arch/CPI_Switch_bpu_rd0_I: bwdOutTick               : STATE is IDLE&lt;br/&gt;Info:     112 ns NttpSimpleSlavePort:NTTP(Not initialized): nb_transport_fw          :  phase END_PARTIAL_RESP delay 0 s</example>
+        </reader.log.pattern.option>
+        <reader.log.pattern.option name="Ignore"/>
+        <serializer.configuration.default name="myFlexNoCConfig">
+            <properties len="1">
+                <addLines>true</addLines>
+            </properties>
+            <record.analysis name="Analysis" producer="FlexNocTransactionAnalyzer">
+                <record.source name="i_vpu_noc_arch" reference="../i_vpu_noc_arch"/>
+                <record.source name="i_vpu2ddr_nsp2axi_1to4_interleave_bridge0_arch" reference="../i_vpu2ddr_nsp2axi_1to4_interleave_bridge0_arch"/>
+                <record.signal name="Statistics" domainBase="n" count="2" sampleType="7" end="2">
+                    <legend len="1">TGVnZW5kBxEAAAVMYWJlbAAABWxhYmVsBP////8AAQAITG9jYXRpb24AAAAE/////wACAANDbWQLVExNIENvbW1hbmQPcmktY29tbWFuZC1maWxsAAT/////AAMABUNvdW50AAAAAv////8ABAAFQmVnaW4AAAAD/////wJucwUAA0VuZAAAAAP/////Am5zBgAHTGF0ZW5jeQAAB2xhdGVuY3kH/////wAHBwNNaW4AAAtsYXRlbmN5LG1pbgP/////Am5zCAcDTWF4AAALbGF0ZW5jeSxtYXgD/////wJucwkHA01lZAAAC2xhdGVuY3ksbWVkA/////8CbnMKAAVCZWF0cwAAAAf/////AAsLB1JlcS5NaW4AAAAC/////wAMCwdSZXEuTWF4AAAAAv////8ADQsHUmVzLk1pbgAAAAL/////AA4LB1Jlcy5NYXgAAAAC/////wAPAAlCYW5kd2lkdGgAAAAD/////wdkZWMvI0dCEAAHUGVuZGluZwAAAAL/////AAwYaV92cHVfbm9jX2FyY2gvX0NQX3ZwdV9JAQEAAAAQUGVuZGluZ0AzYjlhY2M1OAIBAAAAAnBzBAEAAAAQUGVuZGluZ0AzYjlhY2NhOAICAAAAEFBlbmRpbmdAM2I5YWNjYmMCAwAAABBQZW5kaW5nQDNiOWFjZDBjAgQAAAAQUGVuZGluZ0AzYjlhY2QyMAIFAAAAEFBlbmRpbmdAM2I5YWNkNzACBgAAABBQZW5kaW5nQDNiOWFjZDg0AgcAAAAQUGVuZGluZ0AzYjlhY2RkNAIIAAAAQGlfdnB1MmRkcl9uc3AyYXhpXzF0bzRfaW50ZXJsZWF2ZV9icmlkZ2UwX2FyY2gvX0NQX3ZwdTJkZHJfaW4wX0kBAgAAAAtQZW5kaW5nQDI1OAIJAAAA</legend>
+                    <samples len="1">FQgGAA8AQP8IAAQMX0NQX3ZwdV9JL1JEAQQYaV92cHVfbm9jX2FyY2gvX0NQX3ZwdV9JAgQCUkQDAgErBAMIAAAAAAAAXUAFAwgAAAAAAFB/QAYHIQcDCAAAAAAAgF5ACAMIAAAAAACQdkAJAwgAAAAAAJBwQAoHEAsCAQEMAgEBDQIBCA4CAQgPAwg2sHdMDezLQBACAQokAxABACQJBgEBAQGfwC0IJAkGAQIBAcIATQgkCQYBAwEB5ShwCCQJBgEEAQEJaI8IJAkGAQUBASzg7AokCQYBBgEBT/ATCyQJBgEHAQFyGDcLJAkGAQgBAZVYVgtAHwsABBRfQ1BfdnB1MmRkcl9pbjBfSS9SRAEEQGlfdnB1MmRkcl9uc3AyYXhpXzF0bzRfaW50ZXJsZWF2ZV9icmlkZ2UwX2FyY2gvX0NQX3ZwdTJkZHJfaW4wX0kCBAJSRAMCASwEAwgAAAAAAAA0QAUDCAAAAAAAkH9ABgchBwMIAAAAAACAXkAIAwgAAAAAAJB2QAkDCAAAAAAAkHBACgcQCwIBAQwCAQENAgEIDgIBCA8DCH7QUYEvrsZAEAIBAQEkAxACACQJBgIJAQHWYD0I</samples>
+                </record.signal>
+            </record.analysis>
+        </serializer.configuration.default>
+        <serializer.configuration.default name="Configuration"/>
+    </reader.log.pattern>
+
+    <reader.log.pattern name="Log4j [%p] %c %M - %m%n">
+        <properties len="2">
+            <domainBase>n</domainBase>
+            <enabled>false</enabled>
+        </properties>
+        <reader.log.pattern.option name="Event" warningPattern="WARN" action="1" s1="4" s2="4" s3="4" tagSource="1" pattern="\[(\s*?\S*?\s*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from [%p] %c %M - %m%n" errorPattern="ERROR" member4="Message" member2="Logger" member3="Method" name1Source="2" member1="Level" fatalPattern="FATAL" domainMode="6" nameMode="1">
+            <example>[WARN] de.toem.impulse.test.secondary.Log3 log - get Sinus Wave -0.564085071066512&lt;br/&gt;[TRACE] de.toem.impulse.test.primary.Log1 log -  PCI: MMCONFIG at [mem 0xe0000000-0xefffffff&lt;br/&gt;[TRACE] de.toem.impulse.test.primary.Log1 log -  No Local Variables are initialized for Method [_GTF&lt;br/&gt;[INFO] de.toem.impulse.test.secondary.Log2 log -  ACPI: Local APIC address 0xfee00000</example>
+        </reader.log.pattern.option>
+    </reader.log.pattern>
+    <reader.log.pattern name="Log4j [%p] %d{MM-dd-yyyy HH﹕mm﹕ss} %c %M - %m%n">
+        <properties len="2">
+            <relativeDomainValue>true</relativeDomainValue>
+            <enabled>false</enabled>
+        </properties>
+        <reader.log.pattern.option name="Event" domainSource="2" warningPattern="WARN" dateFormat="MM-dd-yyyy HH:mm:ss" action="1" s1="4" s2="0" s3="4" s4="4" tagSource="1" pattern="\[(\s*?\S*?\s*?)\] (\S+\S+-\S+\S+-\S+\S+\S+\S+ \S+\S+:\S+\S+:\S+\S+) (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from [%p] %d{MM-dd-yyyy HH:mm:ss} %c %M - %m%n" errorPattern="ERROR" member4="Method" member5="Message" member2="Timestamp" member3="Logger" name1Source="3" member1="Level" fatalPattern="FATAL" domainMode="3" nameMode="1">
+            <example>[WARN] 04-15-2020 10:44:13 de.toem.impulse.test.secondary.Log3 log - get Sinus Wave -0.564085071066512&lt;br/&gt;[TRACE] 04-15-2020 10:44:13 de.toem.impulse.test.primary.Log1 log -  No Local Variables are initialized for Method [_GTF&lt;br/&gt;[TRACE] 04-15-2020 10:44:13 de.toem.impulse.test.primary.Log1 log -  PCI: MMCONFIG at [mem 0xe0000000-0xefffffff&lt;br/&gt;[INFO] 04-15-2020 10:44:14 de.toem.impulse.test.secondary.Log2 log -  ACPI: Local APIC address 0xfee00000</example>
+        </reader.log.pattern.option>
+    </reader.log.pattern>
+    <reader.log.pattern name="Log4j [%p] %r %c %M - %m%n">
+        <properties len="1">
+            <enabled>false</enabled>
+        </properties>
+        <reader.log.pattern.option name="Event" domainSource="2" warningPattern="WARN" action="1" s1="4" s2="0" s3="4" s4="4" domainUnit="ms" tagSource="1" pattern="\[(\s*?\S*?\s*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from [%p] %r %c %M - %m%n" errorPattern="ERROR" member4="Method" member5="Message" member2="Timestamp" member3="Logger" name1Source="3" member1="Level" fatalPattern="FATAL" domainMode="2" nameMode="1">
+            <example>[WARN] 1149 de.toem.impulse.test.secondary.Log3 log - get Sinus Wave -0.564085071066512&lt;br/&gt;[TRACE] 1148 de.toem.impulse.test.primary.Log1 log -  PCI: MMCONFIG at [mem 0xe0000000-0xefffffff&lt;br/&gt;[TRACE] 1148 de.toem.impulse.test.primary.Log1 log -  No Local Variables are initialized for Method [_GTF&lt;br/&gt;[INFO] 1361 de.toem.impulse.test.secondary.Log2 log -  ACPI: Local APIC address 0xfee00000&lt;br/&gt;[DEBUG] 1361 de.toem.impulse.test.primary.Log1 log -  Switched APIC routing to cluster x2apic.</example>
+        </reader.log.pattern.option>
+    </reader.log.pattern>
+    <reader.log.pattern name="Log4j %d [%p] %c{1} – %m%n">
+        <properties len="2">
+            <relativeDomainValue>true</relativeDomainValue>
+            <enabled>false</enabled>
+        </properties>
+        <reader.log.pattern.option name="Event" domainSource="1" warningPattern="WARN" action="1" s2="4" s3="4" tagSource="2" pattern="(\S+\S+\S+\S+-\S+\S+-\S+\S+ \S+\S+:\S+\S+:\S+\S+,\S+\S+\S+) \[(\s*?\S*?\s*?)\] (\s*?\S*?\s*?) – (.*)" description="Generated from %d [%p] %c{1} – %m%n" errorPattern="ERROR" member4="Message" member2="Level" member3="Logger" name1Source="3" member1="Timestamp" fatalPattern="FATAL" domainMode="3" nameMode="1">
+            <example>2020-04-15 10:44:13,845 [WARN] Log3 – get Sinus Wave -0.564085071066512&lt;br/&gt;2020-04-15 10:44:13,844 [TRACE] Log1 –  No Local Variables are initialized for Method [_GTF&lt;br/&gt;2020-04-15 10:44:13,844 [TRACE] Log1 –  PCI: MMCONFIG at [mem 0xe0000000-0xefffffff&lt;br/&gt;2020-04-15 10:44:14,057 [INFO] Log2 –  ACPI: Local APIC address 0xfee00000</example>
+        </reader.log.pattern.option>
+    </reader.log.pattern>
+    <reader.log.pattern name="Log4j %d{HH﹕mm﹕ss.SSS} [%t] %-5level %logger{36} - %msg%n">
+        <properties len="2">
+            <relativeDomainValue>true</relativeDomainValue>
+            <enabled>false</enabled>
+        </properties>
+        <reader.log.pattern.option name="Log Pattern" domainSource="1" warningPattern="WARN" dateFormat="HH:mm:ss.SSS" action="1" s1="0" s2="4" s3="4" s4="4" tagSource="3" pattern="(\S+\S+:\S+\S+:\S+\S+\.\S+\S+\S+) \[(.*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" errorPattern="ERROR" member4="Logger" member5="Message" member2="Thread" member3="Level" name1Source="4" member1="Timestamp" fatalPattern="FATAL" domainMode="3" nameMode="1"/>
+    </reader.log.pattern>
+    <reader.log.pattern name="Log4J %r [%t] %p %c %x - %m%n">
+        <properties len="2">
+            <relativeDomainValue>true</relativeDomainValue>
+            <enabled>false</enabled>
+        </properties>
+        <reader.log.pattern.option name="Log Pattern" domainSource="1" warningPattern="WARN" action="1" s1="0" s2="4" s3="4" s4="4" s5="4" domainUnit="ms" tagSource="3" pattern="([0-9\-\+]*?) \[(.*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) (.*?) \- (.*)" description="Generated from %r [%t] %p %c %x - %m%n" errorPattern="ERROR" member6="Message" member4="Logger" member5="NDC" member2="Thread" member3="Level" name1Source="4" member1="Timestamp" fatalPattern="FATAL" domainMode="2" nameMode="1"/>
+    </reader.log.pattern>
+    <reader.log.pattern name="syslog RFC3164">
+        <properties len="2">
+            <domainBase>dateTime</domainBase>
+            <enabled>false</enabled>
+        </properties>
+        <reader.log.pattern.option name="Events" domainSource="2" dateFormat="MMM dd HH:mm:ss" action="1" s1="4" s2="0" pattern="&lt;?([0-9]*)&gt;?([A-Z][a-z][a-z]\s{1,2}\d{1,2}\s\d{2}[:]\d{2}[:]\d{2})\s([\w][\w\d\.@-]*)\s(.*)" member4="Message" member2="Timestamp" member3="Header" member1="Priority" domainMode="3">
+            <example>&lt;135&gt;May 11 09:33:36 thomas  No Local Variables are initialized for Method [_GTF&lt;br/&gt;&lt;132&gt;May 11 09:33:36 thomas get Sinus Wave 0.9629702887498031&lt;br/&gt;Apr 24 08:55:18 thomas rsyslogd:  [origin software="rsyslogd" swVersion="8.1901.0" x-pid="1200" x-info="https://www.rsyslog.com"] rsyslogd was HUPed&lt;br/&gt;Apr 24 08:55:19 thomas NetworkManager[1173]: &lt;info&gt;  [1587711319.0627] Loaded device plugin: NMBluezManager (/usr/lib/x86_64-linux-gnu/NetworkManager/1.20.4/libnm-device-plugin-bluetooth.so)</example>
+        </reader.log.pattern.option>
+    </reader.log.pattern>
+    <reader.log.pattern name="syslog RFC5424">
+        <properties len="2">
+            <domainBase>dateTime</domainBase>
+            <enabled>false</enabled>
+        </properties>
+        <reader.log.pattern.option name="Events" domainSource="1" dateFormat="yyyy-MM-dd'T'HH:mm:ss.SSSX" action="1" s1="0" pattern="(?:(\d{4}[-]\d{2}[-]\d{2}[T]\d{2}[:]\d{2}[:]\d{2}(?:\.\d{1,6})?(?:[+-]\d{2}[:]\d{2}|Z)?)|-)\s(?:([\w][\w\d\.@-]*)|-)\s(.*)" member2="Header" member3="Message" member1="Timestamp" domainMode="3">
+            <example>2020-05-11T09:33:36.097+02:00 thomas /home/thomas/Workspaces/impulse.test/de.toem.impulse.test/bin/log4j2.xml 5886 - -  No Local Variables are initialized for Method [_GTF&lt;br/&gt;2020-05-11T09:33:36.306+02:00 thomas /home/thomas/Workspaces/impulse.test/de.toem.impulse.test/bin/log4j2.xml 5886 - - get Sinus Wave 0.9629702887498031&lt;br/&gt;2020-05-11T09:33:36.309+02:00 thomas /home/thomas/Workspaces/impulse.test/de.toem.impulse.test/bin/log4j2.xml 5886 - -  rcu: &lt;br/&gt;2020-05-11T09:33:36.311+02:00 thomas /home/thomas/Workspaces/impulse.test/de.toem.impulse.test/bin/log4j2.xml 5886 - -  ACPI: Local APIC address 0xfee00000</example>
+        </reader.log.pattern.option>
+    </reader.log.pattern>
+    <reader.log.xml name="Log4j XML 1.2">
+    <properties len="2">
+        <xmlFragment>true</xmlFragment>
+        <relativeDomainValue>true</relativeDomainValue>
+    </properties>
+    <reader.log.xml.option name="Event" path="log4j:event" attributes="logger,timestamp,sequenceNumber,level,thread" action="1" member2="Logger" member3="Timestamp" member4="Sequence" member6="Thread" s2="4" s3="0" s4="1" s5="4" s6="4" domainMode="2" domainSource="3" domainUnit="ms" nameMode="1" name1Source="2" namePrefix="_" tagSource="5" fatalPattern="FATAL" errorPattern="ERROR" warningPattern="WARN"/>
+    <reader.log.xml.option name="Message" path="log4j:event/log4j:message" action="2" member1="Message" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Ignore other" path="*"/>
+</reader.log.xml>
+<reader.log.xml name="Java Logging">
+    <properties len="1">
+        <relativeDomainValue>true</relativeDomainValue>
+    </properties>
+    <reader.log.xml.option name="Record" path="record" action="1" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Millies" path="record/millis" action="2" domainMode="2" domainSource="1" domainUnit="ms" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Logger" path="record/logger" action="2" nameMode="1" name1Source="1" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Sequence" path="record/sequence" action="2" member1="Sequence" s1="1" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Level" path="record/level" action="2" tagSource="1" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Class" path="record/class" action="2" member1="Class" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Method" path="record/method" action="2" member1="Method" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Thread" path="record/thread" action="2" member1="Thread" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Message" path="record/message" action="2" member1="Message" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Ignore other" path="*"/>
+</reader.log.xml>
+<reader.log.xml name="Log4j XML 2 full">
+    <properties len="1">
+        <relativeDomainValue>true</relativeDomainValue>
+    </properties>
+    <reader.log.xml.option name="Event" path="Events/Event" attributes="loggerName,level,threadPriority,threadId" action="1" member2="Logger" member4="Priority" member5="Thread" member6="Thread" s2="4" s3="0" s4="1" s5="4" s6="4" domainSource="3" domainUnit="ms" nameMode="1" name1Source="2" namePrefix="_" tagSource="3" fatalPattern="FATAL" errorPattern="ERROR" warningPattern="WARN"/>
+    <reader.log.xml.option name="Message" path="Event/Message" action="2" member1="Message" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Timestamp" path="Event/Instant" attributes="epochSecond,nanoOfSecond" action="2" domainMode="2" domainSource="2" domainUnit="s" domain2Mode="2" domain2Source="3" domain2Unit="ns" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.xml.option name="Ignore other" path="*"/>
+</reader.log.xml>
+
+<reader.log.json name="Log4J JSON">
+    <properties len="1">
+        <relativeDomainValue>true</relativeDomainValue>
+    </properties>
+    <reader.log.json.option name="Event" values="thread,level,loggerName,message,endOfBatch,loggerFqcn,threadId,threadPriority" action="1" member1="Thread" member2="Level" member4="Message" nameMode="1" name1Source="3" tagSource="2" fatalPattern="FATAL" errorPattern="ERROR" warningPattern="WARN"/>
+    <reader.log.json.option name="Timestamp" path="instant" values="epochSecond,nanoOfSecond" action="2" domainMode="2" domainSource="1" domainUnit="s" domain2Mode="2" domain2Source="2" domain2Unit="ns" warningPattern="warning|WARNING|Warning"/>
+    <reader.log.json.option name="Ignore other" path="*"/>
+</reader.log.json>
+<reader.log.json name="GELF">
+    <properties len="1">
+        <relativeDomainValue>true</relativeDomainValue>
+    </properties>
+    <reader.log.json.option name="Event" values="version,host,short_message,full_message,timestamp,level,facility,line,file,_thread,_logger" action="1" member2="Host" member3="Message" member4="Full Message" member5="Timestamp" member6="Level" member7="Facility" member8="Line" member9="File" member10="Thread" s2="4" s5="0" s6="4" s7="4" s9="4" s10="4" domainMode="1" domainSource="5" domainUnit="s" nameMode="1" name1Source="2" tagSource="6" fatalPattern="0|1|2" errorPattern="3" warningPattern="4"/>
+    <reader.log.json.option name="Ignore other" path="*"/>
+</reader.log.json>
+
+</extension> 
+</plugin>
