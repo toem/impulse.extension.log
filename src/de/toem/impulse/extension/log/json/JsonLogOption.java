@@ -1,6 +1,5 @@
 package de.toem.impulse.extension.log.json;
 
-import de.toem.impulse.extension.log.ImpulseLogExtension;
 import de.toem.impulse.extension.log.i18n.I18n;
 import de.toem.impulse.usecase.logging.AbstractLogOption;
 import de.toem.toolkits.pattern.element.CellAnnotation;
@@ -14,6 +13,34 @@ import de.toem.toolkits.ui.controller.base.TextController;
 import de.toem.toolkits.ui.tlk.ITlkControlProvider;
 import de.toem.toolkits.ui.tlk.TLK;
 
+/**
+ * JSON log option for configuring JSON object parsing patterns.
+ *
+ * This option defines a single JSON parsing configuration that can be used by
+ * {@link JsonLogReader} to parse JSON objects based on path patterns and field
+ * mappings. Each option specifies a JSON path pattern and a comma-separated
+ * list of field names to extract as source values for domain, name, and member
+ * data extraction.
+ *
+ * Key features:
+ * - Path-based JSON object selection using hierarchical path patterns
+ * - Configurable field mapping from JSON properties to source values
+ * - Support for wildcard patterns (*) for flexible object matching
+ * - Dynamic source validation based on configured field list
+ * - Integration with JSON streaming parser for efficient processing
+ *
+ * Implementation notes:
+ * - This class extends {@link de.toem.impulse.usecase.logging.AbstractLogOption}
+ *   and follows the project property-model conventions for configuration.
+ * - Path patterns support hierarchical navigation (e.g., "parent/child")
+ * - Field values are comma-separated and indexed for source mapping
+ * - Supports various JSON data types through string-based extraction
+ * - Compatible with Jackson JSON parser token-based processing
+ *
+ * Copyright (c) 2013-2025 Thomas Haber
+ * All rights reserved.
+ *
+ */
 @CellAnnotation(annotation = JsonLogOption.Annotation.class)
 public class JsonLogOption extends AbstractLogOption {
     public static final String TYPE = Annotation.id;
@@ -27,14 +54,27 @@ public class JsonLogOption extends AbstractLogOption {
         public static final Class<? extends IInstancer>[] instancer = new Class[] { Instancer.class };
     }
 
+    /**
+     * Instancer for JsonLogOption.
+     */
     @RegistryAnnotation(annotation = Instancer.Annotation.class)
     public static class Instancer extends AbstractDefaultInstancer {
 
+        /**
+         * Annotation for Instancer.
+         */
         static class Annotation {
             public static final String id = "de.toem.instancer." + TYPE;
             public static final String cellType = TYPE;
         }
 
+        /**
+         * Initializes the cell.
+         *
+         * @param id the cell ID
+         * @param cell the cell
+         * @param container the container
+         */
         @Override
         protected void initOne(String id, ICell cell, ICell container) {
             super.initOne(id, cell, container);
@@ -48,20 +88,27 @@ public class JsonLogOption extends AbstractLogOption {
 
 
     // Json pattern
+    // JSON path pattern for object selection
     public String path;
     @FieldAnnotation(affects = { FieldAnnotation.ALL_FIELDS })
+    // Comma-separated list of field names to extract
     public String values;
 
     // source
+    // First source value index
     public static final int SOURCE_VALUE1 = 1;
 
     // action
+    // Action labels for JSON parsing
     public static final String[] ACTION_LABELS = { I18n.General_Ignore, I18n.JsonLogConfiguration_ActionNew, I18n.JsonLogConfiguration_ActionAdd,
             I18n.JsonLogConfiguration_ActionTerminate};
+    // Whether to add record position
     public boolean addRecPos = true;
 
     // source
+    // Constant for no source
     public static final int SOURCE_NONE = 0;
+    // Source labels for field mapping
     public static final String[] SOURCE_LABELS = { I18n.General_None, I18n.JsonLogConfiguration_Source + " 1",
             I18n.JsonLogConfiguration_Source + " 2", I18n.JsonLogConfiguration_Source + " 3", I18n.JsonLogConfiguration_Source + " 4",
             I18n.JsonLogConfiguration_Source + " 5", I18n.JsonLogConfiguration_Source + " 6", I18n.JsonLogConfiguration_Source + " 7",
@@ -74,16 +121,33 @@ public class JsonLogOption extends AbstractLogOption {
     // Accessors
     // ========================================================================================================================
 
+    /**
+     * Checks if the given source number is valid based on the configured values.
+     *
+     * @param n the source number to check
+     * @return true if the source number is valid
+     */
     public boolean hasValidSource(int n) {
         String[] splitted = values != null ? values.split(",") : null;
         return splitted != null && splitted.length > (n - SOURCE_VALUE1) && n >= SOURCE_VALUE1 ? true : false;
     }
 
+    /**
+     * Gets the source identifier for the given source number.
+     *
+     * @param n the source number
+     * @return the source identifier, or null if invalid
+     */
     public String getSourceIdentifier(int n) {
         String[] splitted = values != null ? values.split(",") : null;
         return splitted != null && splitted.length > (n - SOURCE_VALUE1) && n >= SOURCE_VALUE1 ? splitted[n - SOURCE_VALUE1] : null;
     }
 
+    /**
+     * Gets the maximum source number based on the configured values.
+     *
+     * @return the maximum source number
+     */
     public int getMaxSource() {
         String[] splitted = values != null ? values.split(",") : null;
         return splitted != null ? splitted.length : 0;
@@ -93,18 +157,28 @@ public class JsonLogOption extends AbstractLogOption {
     // Controls
     // ========================================================================================================================
 
+    /**
+     * Controls for JsonLogOption.
+     */
     public static class Controls extends AbstractLogOption.Controls {
 
+        /**
+         * Constructor.
+         *
+         * @param clazz the class
+         */
         public Controls(Class<? extends ICell> clazz) {
             super(clazz);
             this.sourceLabels = SOURCE_LABELS;
 
         }
-        @Override
-        public String getHelpContext() {
-            return ImpulseLogExtension.BUNDLE_ID + "." + "jsonlog_dialog";
-        }
-             
+   
+        /**
+         * Fills the match section of the UI.
+         *
+         * @throws NoSuchFieldException if field not found
+         * @throws SecurityException if security issue
+         */
         @Override
         protected void fillMatch() throws NoSuchFieldException, SecurityException {
 
@@ -114,6 +188,12 @@ public class JsonLogOption extends AbstractLogOption {
                     tlk().ld(cols() , TLK.GRAB, TLK.NO_HINT, TLK.FILL, TLK.DEFAULT), TLK.LABEL | TLK.BORDER, I18n.JsonConfigurationDialog_Values);
         }
 
+        /**
+         * Fills the action section of the UI.
+         *
+         * @throws NoSuchFieldException if field not found
+         * @throws SecurityException if security issue
+         */
         @Override
         protected void fillAction() throws NoSuchFieldException, SecurityException {
             tlk().addButtonSet(container(), new RadioSetController(editor(), clazz().getField("action")), 2, cols(), TLK.RADIO | TLK.LABEL, JsonLogOption.ACTION_LABELS,
@@ -121,6 +201,11 @@ public class JsonLogOption extends AbstractLogOption {
         }
     }
     
+    /**
+     * Returns the controls provider.
+     *
+     * @return the controls
+     */
     public static ITlkControlProvider getControls() {
         return new Controls(JsonLogOption.class);
     }

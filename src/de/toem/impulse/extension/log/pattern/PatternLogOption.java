@@ -24,10 +24,39 @@ import de.toem.toolkits.ui.tlk.ITlkControlProvider;
 import de.toem.toolkits.ui.tlk.TLK;
 import de.toem.toolkits.utils.text.MultilineText;
 
+/**
+ * Pattern log option for configuring regular expression patterns in log readers.
+ *
+ * This option defines a single pattern configuration that can be used by
+ * {@link PatternLogReader} to parse log lines. Each option specifies a regular
+ * expression pattern and how to extract and map captured groups to domain values,
+ * names, tags, and member attributes.
+ *
+ * Key features:
+ * - Configurable regular expression patterns with capture groups
+ * - Support for different actions (ignore, start new message, add to message, terminate)
+ * - Flexible source mapping for domain, name, and member extraction
+ * - Built-in pattern testing with example text
+ * - Dynamic source validation based on pattern complexity
+ *
+ * Implementation notes:
+ * - This class extends {@link de.toem.impulse.usecase.logging.AbstractLogOption}
+ *   and follows the project property-model conventions for configuration.
+ * - Pattern compilation and group counting are performed dynamically
+ * - The controls provide an integrated testing interface for pattern validation
+ *
+ * Copyright (c) 2013-2025 Thomas Haber
+ * All rights reserved.
+ *
+ */
 @CellAnnotation(annotation = PatternLogOption.Annotation.class)
 public class PatternLogOption extends AbstractLogOption {
+    // The type identifier
     public static final String TYPE = Annotation.id;
 
+    /**
+     * Annotation class for PatternLogOption.
+     */
     public static class Annotation {
         public static final String id = "reader.log.pattern.option";
         public static final String label = I18n.Log_PatternLogOption;
@@ -37,14 +66,27 @@ public class PatternLogOption extends AbstractLogOption {
         public static final Class<? extends IInstancer>[] instancer = new Class[] { Instancer.class };
     }
 
+    /**
+     * Instancer for PatternLogOption.
+     */
     @RegistryAnnotation(annotation = Instancer.Annotation.class)
     public static class Instancer extends AbstractDefaultInstancer {
 
+        /**
+         * Annotation for Instancer.
+         */
         static class Annotation {
             public static final String id = "de.toem.instancer." + TYPE;
             public static final String cellType = TYPE;
         }
 
+        /**
+         * Initializes the cell.
+         *
+         * @param id the cell ID
+         * @param cell the cell
+         * @param container the container
+         */
         @Override
         protected void initOne(String id, ICell cell, ICell container) {
             super.initOne(id, cell, container);
@@ -56,17 +98,23 @@ public class PatternLogOption extends AbstractLogOption {
     // ========================================================================================================================
 
     // text pattern
+    // Example text for testing the pattern
     public String example;
     @FieldAnnotation(affects = { FieldAnnotation.ALL_FIELDS })
+    // The regular expression pattern
     public String pattern = ".*";
 
     // action
+    // Action labels for the pattern
     public static final String[] ACTION_LABELS = { I18n.General_Ignore, I18n.PatternLogConfiguration_ActionNew,
             I18n.PatternLogConfiguration_ActionAdd, I18n.PatternLogConfiguration_ActionTerminate };
+    // Whether to add record position
     public boolean addRecPos = true;
 
     // source
+    // Constant for no source
     public static final int SOURCE_NONE = 0;
+    // Source labels
     public static final String[] SOURCE_LABELS = { I18n.General_None, I18n.PatternLogConfiguration_Source + " 1",
             I18n.PatternLogConfiguration_Source + " 2", I18n.PatternLogConfiguration_Source + " 3", I18n.PatternLogConfiguration_Source + " 4",
             I18n.PatternLogConfiguration_Source + " 5", I18n.PatternLogConfiguration_Source + " 6", I18n.PatternLogConfiguration_Source + " 7",
@@ -76,10 +124,21 @@ public class PatternLogOption extends AbstractLogOption {
             I18n.PatternLogConfiguration_Source + " 17", I18n.PatternLogConfiguration_Source + " 18", I18n.PatternLogConfiguration_Source + " 19",
             I18n.PatternLogConfiguration_Source + " 20" };
 
+    /**
+     * Gets the source identifier for the given number.
+     *
+     * @param n the source number
+     * @return the identifier
+     */
     public String getSourceIdentifier(int n) {
         return null;
     }
 
+    /**
+     * Gets the maximum source number based on the pattern.
+     *
+     * @return the maximum source
+     */
     public int getMaxSource() {
         if (pattern == null)
             return 0;
@@ -96,6 +155,12 @@ public class PatternLogOption extends AbstractLogOption {
         return Math.min(SOURCE_LABELS.length - 1, noOfGroups);
     }
 
+    /**
+     * Checks if the given source number is valid.
+     *
+     * @param n the source number
+     * @return true if valid
+     */
     public boolean hasValidSource(int n) {
         return n <= getMaxSource();
     }
@@ -104,14 +169,28 @@ public class PatternLogOption extends AbstractLogOption {
     // Controls
     // ========================================================================================================================
 
+    /**
+     * Controls for PatternLogOption.
+     */
     public static class Controls extends AbstractLogOption.Controls {
 
+        /**
+         * Constructor.
+         *
+         * @param clazz the class
+         */
         public Controls(Class<? extends ICell> clazz) {
             super(clazz);
             this.sourceLabels = SOURCE_LABELS;
 
         }
 
+        /**
+         * Fills the match section.
+         *
+         * @throws NoSuchFieldException if field not found
+         * @throws SecurityException if security issue
+         */
         @Override
         protected void fillMatch() throws NoSuchFieldException, SecurityException {
 
@@ -163,6 +242,12 @@ public class PatternLogOption extends AbstractLogOption {
 
         }
 
+        /**
+         * Fills the action section.
+         *
+         * @throws NoSuchFieldException if field not found
+         * @throws SecurityException if security issue
+         */
         @Override
         protected void fillAction() throws NoSuchFieldException, SecurityException {
             tlk().addButtonSet(container(), new RadioSetController(editor(), clazz().getField("action")) {
@@ -178,6 +263,11 @@ public class PatternLogOption extends AbstractLogOption {
         }
     }
 
+    /**
+     * Returns the controls provider.
+     *
+     * @return the controls
+     */
     public static ITlkControlProvider getControls() {
         return new Controls(PatternLogOption.class);
     }

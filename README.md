@@ -7,11 +7,7 @@ category: "impulse-extension"
 tags:
   - extension
   - log
-  - impulse
-  - import
-  - analysis
-  - visualization
-docID: 1092
+docID: 1227
 --->
 # Generic Log Reader Extension
 

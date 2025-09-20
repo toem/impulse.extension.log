@@ -2,13 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: impulse Log Extension
 Bundle-SymbolicName: de.toem.impulse.extension.log;singleton:=true
-Bundle-Version: 3.0.2
-Bundle-Activator: de.toem.impulse.extension.log.ImpulseLogExtension
+Bundle-Version: 3.0.3
 Require-Bundle: org.eclipse.osgi,
- de.toem.toolkits.general;bundle-version="3.0.2",
- de.toem.impulse.base;bundle-version="3.0.2",
- de.toem.impulse.ui;bundle-version="3.0.2"
-Import-Package: org.eclipse.swt.graphics 
+ de.toem.toolkits.general;bundle-version="3.0.3",
+ de.toem.impulse.base;bundle-version="3.0.3",
+ de.toem.impulse.ui;bundle-version="3.0.3"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: toem.de

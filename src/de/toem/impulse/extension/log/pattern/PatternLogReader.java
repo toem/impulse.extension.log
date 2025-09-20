@@ -30,8 +30,35 @@ import de.toem.toolkits.ui.tlk.ITlkControlProvider;
 import de.toem.toolkits.ui.tlk.TLK;
 import de.toem.toolkits.utils.serializer.ParseException;
 
+/**
+ * Pattern-based log reader for impulse.
+ *
+ * This reader applies configurable regular expression patterns to log files and
+ * converts matching lines into impulse records. Patterns are configured via
+ * {@link PatternLogOption} instances and can extract domain values, names,
+ * tags and member attributes from capture groups.
+ *
+ * Key features:
+ * - Uses Java regular expressions to match and extract data from log lines
+ * - Supports multi-line message assembly using pattern actions (start/terminate)
+ * - Optional writing of raw lines into a separate "lines" writer
+ * - Configurable skip/stop line counts and progress reporting
+ *
+ * Implementation notes:
+ * - This reader extends {@link de.toem.impulse.usecase.logging.AbstractLogReader}
+ *   and follows the project property-model conventions for configuration.
+ * - Time and domain parsing, member mapping and writer interaction are
+ *   implemented in the nested {@link PatternParser} class.
+ *
+ * Copyright (c) 2013-2025 Thomas Haber
+ * All rights reserved.
+ *
+ */
 @RegistryAnnotation(annotation = PatternLogReader.Annotation.class)
 public class PatternLogReader extends AbstractLogReader {
+    /**
+     * Annotation class for PatternLogReader.
+     */
     public static class Annotation extends AbstractSingleDomainRecordReader.Annotation {
         public static final Class<? extends ICell> multiton = Preference.class;
         public static final String id = "reader.log.pattern";
@@ -50,23 +77,54 @@ public class PatternLogReader extends AbstractLogReader {
     // Constructor
     // ========================================================================================================================
 
+    /**
+     * Default constructor.
+     */
     public PatternLogReader() {
         super();
     }
 
+    /**
+     * Constructs a PatternLogReader with the specified parameters.
+     *
+     * @param descriptor the serializer descriptor
+     * @param contentName the content name
+     * @param contentType the content type
+     * @param cellType the cell type
+     * @param configuration the configuration
+     * @param properties the properties
+     * @param in the input stream
+     */
     public PatternLogReader(ISerializerDescriptor descriptor, String contentName, String contentType, String cellType, String configuration,
             String[][] properties, InputStream in) {
         super(descriptor, configuration, properties, getPropertyModel(descriptor, null), in);
     }
 
+    /**
+     * Creates a property model for the pattern log reader.
+     * The model exposes configuration keys such as writeLines, skipLines and stopAfterLines
+     * that control parsing behavior.
+     *
+     * @param descriptor serializer descriptor context
+     * @param context additional context (may be null)
+     * @return the property model for this reader
+     */
+
     // ========================================================================================================================
     // Preferences
     // ========================================================================================================================
 
+    /**
+     * Preference class for PatternLogReader.
+     */
     @CellAnnotation(annotation = Preference.Annotation.class, dynamicChildren = { DefaultSerializerConfiguration.TYPE, PatternLogOption.TYPE })
     public static class Preference extends AbstractLogReader.AbstractLogReaderPreference {
+        // The type identifier
         public static final String TYPE = Annotation.id;
 
+        /**
+         * Annotation for Preference.
+         */
         static class Annotation {
             public static final String id = PatternLogReader.Annotation.id;
             public static final String label = PatternLogReader.Annotation.label;
@@ -78,14 +136,27 @@ public class PatternLogReader extends AbstractLogReader {
 
         }
 
+        /**
+         * Instancer for Preference.
+         */
         @RegistryAnnotation(annotation = Instancer.Annotation.class)
         public static class Instancer extends AbstractDefaultInstancer {
 
+            /**
+             * Annotation for Instancer.
+             */
             static class Annotation {
                 public static final String id = "de.toem.instancer." + TYPE;
                 public static final String cellType = TYPE;
             }
 
+            /**
+             * Initializes the cell.
+             *
+             * @param id the cell ID
+             * @param cell the cell
+             * @param container the container
+             */
             @Override
             protected void initOne(String id, ICell cell, ICell container) {
                 super.initOne(id, cell, container);
@@ -93,11 +164,21 @@ public class PatternLogReader extends AbstractLogReader {
             }
         }
 
+        /**
+         * Returns the serializer class.
+         *
+         * @return the class
+         */
         @Override
         public Class<? extends ICellSerializer> getClazz() {
             return PatternLogReader.class;
         }
 
+        /**
+         * Returns the cell type.
+         *
+         * @return the cell type
+         */
         @Override
         public String getCellType() {
             return PatternLogReader.Annotation.cellType;
@@ -107,12 +188,23 @@ public class PatternLogReader extends AbstractLogReader {
         // Controls
         // ========================================================================================================================
 
+        /**
+         * Controls for Preference.
+         */
         static public class Controls extends AbstractMultitonSerializerPreference.Controls {
 
+            /**
+             * Constructor.
+             *
+             * @param clazz the class
+             */
             public Controls(Class<? extends ICell> clazz) {
                 super(clazz);
             }
 
+            /**
+             * Fills section 4.
+             */
             protected void fillSection4() {
 
                 fillChildTable(container(), AbstractLogOption.class, cols(), TLK.EXPAND | TLK.CHECK | TLK.BUTTON, I18n.Log_PatternLogOptions, null,
@@ -124,6 +216,11 @@ public class PatternLogReader extends AbstractLogReader {
             };
         }
 
+        /**
+         * Returns the controls provider.
+         *
+         * @return the controls
+         */
         public static ITlkControlProvider getControls() {
             return new Controls(AbstractLogReaderPreference.class);
         }
@@ -133,6 +230,18 @@ public class PatternLogReader extends AbstractLogReader {
     // Property Model
     // ========================================================================================================================
 
+    /**
+     * Creates and returns the property model for this reader.
+     *
+     * The model exposes configuration entries used by the parser:
+     * - writeLines: whether parsed raw lines should be written to a separate writer
+     * - skipLines: number of initial lines to skip
+     * - stopAfterLines: stop parsing after this many lines
+     *
+     * @param descriptor serializer descriptor providing contextual information
+     * @param context additional context (may be null)
+     * @return configured PropertyModel
+     */
     static public PropertyModel getPropertyModel(ISerializerDescriptor descriptor, Object context) {
         return AbstractLogReader.getPropertyModel(descriptor, context).add("writeLines", false, null, "Add signal with raw lines includes").add("skipLines", 0, null,null,null, "Skip Lines").add("stopAfterLines",  -1, null,null,null, "Stop After Lines");
     }
@@ -142,10 +251,33 @@ public class PatternLogReader extends AbstractLogReader {
     // ========================================================================================================================
 
     @Override
+    /**
+     * Factory method for creating a {@link PatternParser} from an {@link AbstractLogOption}.
+     *
+     * @param option option describing the pattern and parsing behavior
+     * @return a new PatternParser instance
+     * @throws ParseException if the option cannot be converted into a parser
+     */
     protected PatternParser createOptionParser(AbstractLogOption option) throws ParseException {
         return new PatternParser((PatternLogOption) option);
     }
 
+    /**
+     * Main parsing loop. Reads the input stream line-by-line, applies all
+     * configured pattern parsers and writes resulting messages via the
+     * configured writers.
+     *
+     * Behavior highlights:
+     * - Skips empty lines and respects skipLines/stopAfterLines properties
+     * - Each non-empty line must match at least one configured pattern; otherwise
+     *   a ParseException is thrown
+     * - If a "lines" writer is configured, raw lines are written there
+     *
+     * @param progress progress/cancellation interface
+     * @param in input stream to read
+     * @throws ParseException on parsing errors
+     * @throws IOException on IO errors
+     */
     @Override
     protected void parseLogs(IProgress progress, InputStream in) throws ParseException, IOException {
 
@@ -216,9 +348,18 @@ public class PatternLogReader extends AbstractLogReader {
 
     class PatternParser extends AbstractOptionParser {
 
+        // The compiled pattern
         private Pattern pattern;
+        // The matcher instance
         private Matcher matcher;
 
+        /**
+         * Constructs a PatternParser for the provided option.
+         * The option's regular expression is compiled and prepared for matching.
+         *
+         * @param option pattern configuration
+         * @throws ParseException if the regex is invalid
+         */
         public PatternParser(PatternLogOption option) throws ParseException {
             super(option);
 
@@ -232,11 +373,34 @@ public class PatternLogReader extends AbstractLogReader {
 
         }
 
+        /**
+         * Returns a Matcher for the given input line by resetting the compiled
+         * pattern matcher. Returns null if the pattern compilation previously
+         * failed.
+         *
+         * @param line input line
+         * @return Matcher or null
+         */
         public final Matcher matcher(String line) {
             return matcher != null ? matcher.reset(line) : null;
         }
 
-        public LogWriter parse(Matcher m, LogMessage message) throws ParseException {
+    /**
+     * Parses the matched groups from the provided Matcher and updates the
+     * given LogMessage. Depending on the parser action the method can
+     * produce a {@link LogWriter} indicating that the current message
+     * should be written out.
+     *
+     * This method extracts domain values, names, tags and member values
+     * using the configured group indices on the parser instance. It also
+     * updates line numbers and the message empty flag.
+     *
+     * @param m regex matcher with successful match
+     * @param message mutable log message to populate
+     * @return a LogWriter when a write is triggered; otherwise null
+     * @throws ParseException on semantic validation errors
+     */
+    public LogWriter parse(Matcher m, LogMessage message) throws ParseException {
 
             if (action == AbstractLogOption.ACTION_IGNORE)
                 return null;

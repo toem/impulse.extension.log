@@ -33,6 +33,33 @@ import de.toem.toolkits.ui.tlk.ITlkControlProvider;
 import de.toem.toolkits.ui.tlk.TLK;
 import de.toem.toolkits.utils.serializer.ParseException;
 
+/**
+ * JSON-based log reader for impulse.
+ *
+ * This reader parses JSON-formatted log files and converts JSON objects into
+ * impulse records based on configurable path patterns and field mappings.
+ * It uses the Jackson JSON parser to stream through JSON structures and
+ * extract relevant data according to configured JsonLogOption instances.
+ *
+ * Key features:
+ * - Streaming JSON parsing using Jackson library for memory efficiency
+ * - Path-based pattern matching for JSON object selection
+ * - Support for nested JSON structures with stack-based parsing
+ * - Flexible field mapping from JSON properties to impulse signals
+ * - Configurable domain, name, and member extraction from JSON data
+ *
+ * Implementation notes:
+ * - This reader extends {@link de.toem.impulse.usecase.logging.AbstractLogReader}
+ *   and follows the project property-model conventions for configuration.
+ * - Uses {@link com.fasterxml.jackson.core.JsonParser} for efficient JSON streaming
+ * - Maintains parsing state with stacks for nested objects and attributes
+ * - Supports various JSON value types (string, number, boolean, null)
+ * - Path matching uses hierarchical JSON structure navigation
+ *
+ * Copyright (c) 2013-2025 Thomas Haber
+ * All rights reserved.
+ *
+ */
 @RegistryAnnotation(annotation = JsonLogReader.Annotation.class)
 public class JsonLogReader extends AbstractLogReader {
     public static class Annotation extends AbstractSingleDomainRecordReader.Annotation {
@@ -54,10 +81,24 @@ public class JsonLogReader extends AbstractLogReader {
     // Constructor
     // ========================================================================================================================
 
+    /**
+     * Default constructor.
+     */
     public JsonLogReader() {
         super();
     }
 
+    /**
+     * Constructs a JsonLogReader with the specified parameters.
+     *
+     * @param descriptor the serializer descriptor
+     * @param contentName the content name
+     * @param contentType the content type
+     * @param cellType the cell type
+     * @param configuration the configuration
+     * @param properties the properties
+     * @param in the input stream
+     */
     public JsonLogReader(ISerializerDescriptor descriptor, String contentName, String contentType, String cellType, String configuration,
             String[][] properties, InputStream in) {
         super(descriptor, configuration, properties, getPropertyModel(descriptor, null), in);
@@ -67,8 +108,12 @@ public class JsonLogReader extends AbstractLogReader {
     // Preferences
     // ========================================================================================================================
 
+    /**
+     * Preference class for JsonLogReader.
+     */
     @CellAnnotation(annotation = Preference.Annotation.class, dynamicChildren = { DefaultSerializerConfiguration.TYPE, JsonLogOption.TYPE })
     public static class Preference extends AbstractLogReader.AbstractLogReaderPreference {
+        // The type identifier
         public static final String TYPE = Annotation.id;
 
         static class Annotation {
@@ -89,6 +134,13 @@ public class JsonLogReader extends AbstractLogReader {
                 public static final String cellType = TYPE;
             }
 
+            /**
+             * Initializes the cell.
+             *
+             * @param id the cell ID
+             * @param cell the cell
+             * @param container the container
+             */
             @Override
             protected void initOne(String id, ICell cell, ICell container) {
                 super.initOne(id, cell, container);
@@ -96,11 +148,21 @@ public class JsonLogReader extends AbstractLogReader {
             }
         }
 
+        /**
+         * Returns the serializer class.
+         *
+         * @return the class
+         */
         @Override
         public Class<? extends ICellSerializer> getClazz() {
             return JsonLogReader.class;
         }
 
+        /**
+         * Returns the cell type.
+         *
+         * @return the cell type
+         */
         @Override
         public String getCellType() {
             return JsonLogReader.Annotation.cellType;
@@ -110,12 +172,23 @@ public class JsonLogReader extends AbstractLogReader {
         // Controls
         // ========================================================================================================================
 
+        /**
+         * Controls for Preference.
+         */
         static public class Controls extends AbstractMultitonSerializerPreference.Controls {
 
+            /**
+             * Constructor.
+             *
+             * @param clazz the class
+             */
             public Controls(Class<? extends ICell> clazz) {
                 super(clazz);
             }
 
+            /**
+             * Fills section 4.
+             */
             protected void fillSection4() {
 
                 fillChildTable(container(), AbstractLogOption.class, cols(), TLK.EXPAND | TLK.CHECK | TLK.BUTTON, I18n.Log_JsonLogOptions, null,
@@ -126,6 +199,11 @@ public class JsonLogReader extends AbstractLogReader {
             };
         }
 
+        /**
+         * Returns the controls provider.
+         *
+         * @return the controls
+         */
         public static ITlkControlProvider getControls() {
             return new Controls(AbstractLogReaderPreference.class);
         }
@@ -135,6 +213,13 @@ public class JsonLogReader extends AbstractLogReader {
     // Property Model
     // ========================================================================================================================
 
+    /**
+     * Creates and returns the property model for this reader.
+     *
+     * @param descriptor serializer descriptor providing contextual information
+     * @param context additional context (may be null)
+     * @return configured PropertyModel
+     */
     static public PropertyModel getPropertyModel(ISerializerDescriptor descriptor, Object context) {
         return AbstractLogReader.getPropertyModel(descriptor, context);
     }
@@ -144,11 +229,31 @@ public class JsonLogReader extends AbstractLogReader {
     // ========================================================================================================================
 
 
+    /**
+     * Factory method for creating a JsonOptionParser from an AbstractLogOption.
+     *
+     * @param option option describing the JSON parsing behavior
+     * @return a new JsonOptionParser instance
+     * @throws ParseException if the option cannot be converted into a parser
+     */
     @Override
     protected JsonOptionParser createOptionParser(AbstractLogOption option) throws ParseException {
         return new JsonOptionParser((JsonLogOption) option);
     }
 
+    /**
+     * Main parsing loop for JSON log files.
+     *
+     * Reads the JSON input stream using Jackson streaming parser and processes
+     * JSON tokens to extract structured data. Uses stacks to maintain parsing
+     * state for nested objects and arrays, matching configured patterns and
+     * extracting relevant data into LogMessage instances.
+     *
+     * @param progress progress/cancellation interface
+     * @param in input stream to read JSON from
+     * @throws ParseException on parsing errors
+     * @throws IOException on IO errors
+     */
     @Override
     protected void parseLogs(IProgress progress, InputStream in) throws ParseException, IOException {
 
@@ -257,17 +362,34 @@ public class JsonLogReader extends AbstractLogReader {
 
     class JsonOptionParser extends AbstractOptionParser {
 
+        // Object name for matching
         public String name;
+        // Parent path for matching
         public String ppath;
 
+        // Array of source value identifiers
         protected String[] sourceValues;
 
+        // Domain value identifier
         protected String domainValue;
+        // Second domain value identifier
         protected String domain2Value;
+        // First name value identifier
         protected String name1Value;
+        // Second name value identifier
         protected String name2Value;
+        // Tag value identifier
         protected String tagValue;
 
+        /**
+         * Constructs a JsonOptionParser for the provided option.
+         *
+         * Parses the option's path to extract name and parent path components,
+         * and initializes source value mappings for domain, name, and member extraction.
+         *
+         * @param option JSON log option configuration
+         * @throws ParseException if the option configuration is invalid
+         */
         public JsonOptionParser(JsonLogOption option) throws ParseException {
             super(option);
 
@@ -310,6 +432,13 @@ public class JsonLogReader extends AbstractLogReader {
             }
         }
 
+        /**
+         * Checks if this parser matches the given JSON path and name.
+         *
+         * @param path the current JSON path
+         * @param name the current JSON object name
+         * @return true if this parser should handle the object
+         */
         public boolean matches(String path, String name) {
             if (this.name != null)
                 if (!this.name.equals(name))
@@ -320,6 +449,14 @@ public class JsonLogReader extends AbstractLogReader {
             return true;
         }
 
+        /**
+         * Called when starting to parse a JSON object.
+         *
+         * Handles action-based logic for starting new messages or continuing existing ones.
+         *
+         * @param message the log message to populate
+         * @throws ParseException on parsing errors
+         */
         public void startObject(LogMessage message) throws ParseException {
 
             if (action == AbstractLogOption.ACTION_IGNORE)
@@ -343,6 +480,17 @@ public class JsonLogReader extends AbstractLogReader {
 
         }
 
+        /**
+         * Called when finishing parsing a JSON object.
+         *
+         * Extracts domain values, names, tags, and member data from the collected
+         * attributes and updates the log message accordingly.
+         *
+         * @param attributes map of JSON property names to values
+         * @param message the log message to update
+         * @throws SAXException on parsing errors
+         * @throws ParseException on semantic validation errors
+         */
         public void endObject(Map<String, String> attributes, LogMessage message) throws SAXException, ParseException {
 
             boolean changed = false;

@@ -34,6 +34,40 @@ import de.toem.toolkits.ui.tlk.TLK;
 import de.toem.toolkits.utils.serializer.ParseException;
 
 @RegistryAnnotation(annotation = YamlLogReader.Annotation.class)
+/**
+ * YAML Log Reader implementation for the Impulse logging framework.
+ *
+ * This class provides comprehensive YAML log file parsing capabilities, supporting both full YAML documents
+ * and YAML fragments. It uses Jackson YAML parser for efficient, streaming YAML processing
+ * that can handle large log files without loading the entire document into memory.
+ *
+ * Key features:
+ * - Streaming YAML parsing using Jackson YAML parser for memory efficiency
+ * - Support for YAML object hierarchy with automatic path tracking
+ * - Path-based YAML object matching for log entry identification
+ * - Flexible value extraction from YAML object properties
+ * - Multi-domain timestamp support (primary and secondary domains)
+ * - Configurable log entry naming and tagging
+ * - Custom member field extraction from YAML object values
+ *
+ * YAML Structure Support:
+ * The reader can process YAML files with arbitrary object structure, where log entries are identified
+ * through configurable object path patterns. Each log entry can extract data from:
+ * - YAML object property values
+ * - Object names and paths
+ * - Nested object hierarchies
+ *
+ * Configuration:
+ * Configuration is handled through YamlLogOption instances that define:
+ * - Object path patterns for log entry identification
+ * - Value mappings for timestamps, names, and custom fields
+ * - Parsing actions (start, terminate, ignore)
+ * - Domain and naming modes
+ * 
+ * Copyright (c) 2013-2025 Thomas Haber
+ * All rights reserved.
+ *
+ */
 public class YamlLogReader extends AbstractLogReader {
     public static class Annotation extends AbstractSingleDomainRecordReader.Annotation {
         public static final Class<? extends ICell> multiton = Preference.class;
@@ -53,10 +87,30 @@ public class YamlLogReader extends AbstractLogReader {
     // Constructor
     // ========================================================================================================================
 
+    /**
+     * Default constructor for YamlLogReader.
+     *
+     * Creates a new YAML log reader instance with default configuration.
+     * The reader will need to be configured with options before use.
+     */
     public YamlLogReader() {
         super();
     }
 
+    /**
+     * Constructs a YamlLogReader with full configuration.
+     *
+     * Creates a new YAML log reader instance with the specified configuration parameters.
+     * This constructor initializes the reader with all necessary components for immediate use.
+     *
+     * @param descriptor the serializer descriptor defining the reader's capabilities
+     * @param contentName the name of the content being processed
+     * @param contentType the MIME type of the content
+     * @param cellType the type identifier for the reader cell
+     * @param configuration the configuration string for the reader
+     * @param properties array of property key-value pairs for configuration
+     * @param in the input stream containing the YAML data to be parsed
+     */
     public YamlLogReader(ISerializerDescriptor descriptor, String contentName, String contentType, String cellType, String configuration,
             String[][] properties, InputStream in) {
         super(descriptor, configuration, properties, getPropertyModel(descriptor, null), in);
@@ -66,6 +120,20 @@ public class YamlLogReader extends AbstractLogReader {
     // Preferences
     // ========================================================================================================================
 
+    /**
+     * Preference configuration class for YamlLogReader.
+     *
+     * This class defines the configuration preferences and UI controls for the YAML log reader.
+     * It extends the abstract log reader preference to provide YAML-specific configuration options
+     * and integrates with the Impulse framework's preference system.
+     *
+     * Configuration Elements:
+     * - YAML log options for object/value mapping
+     * - Serializer configuration for data persistence
+     *
+     * @see AbstractLogReader.AbstractLogReaderPreference
+     * @see YamlLogOption
+     */
     @CellAnnotation(annotation = Preference.Annotation.class, dynamicChildren = { DefaultSerializerConfiguration.TYPE, YamlLogOption.TYPE })
     public static class Preference extends AbstractLogReader.AbstractLogReaderPreference {
         public static final String TYPE = Annotation.id;
@@ -81,6 +149,12 @@ public class YamlLogReader extends AbstractLogReader {
 
         }
 
+        /**
+         * Instancer for YamlLogReader preferences.
+         *
+         * This class handles the instantiation and initialization of YAML log reader preference cells.
+         * It extends the abstract default instancer to provide YAML-specific setup logic.
+         */
         @RegistryAnnotation(annotation = Instancer.Annotation.class)
         public static class Instancer extends AbstractDefaultInstancer {
 
@@ -89,6 +163,16 @@ public class YamlLogReader extends AbstractLogReader {
                 public static final String cellType = TYPE;
             }
 
+            /**
+             * Initializes a single cell instance.
+             *
+             * This method is called to initialize a new cell instance with the specified ID and container.
+             * It performs any necessary setup for the YAML log reader preference cell.
+             *
+             * @param id the unique identifier for the cell
+             * @param cell the cell instance to initialize
+             * @param container the parent container for the cell
+             */
             @Override
             protected void initOne(String id, ICell cell, ICell container) {
                 super.initOne(id, cell, container);
@@ -96,11 +180,21 @@ public class YamlLogReader extends AbstractLogReader {
             }
         }
 
+        /**
+         * Returns the serializer class for this preference.
+         *
+         * @return the YamlLogReader class for serialization
+         */
         @Override
         public Class<? extends ICellSerializer> getClazz() {
             return YamlLogReader.class;
         }
 
+        /**
+         * Returns the cell type identifier for this preference.
+         *
+         * @return the cell type string identifier
+         */
         @Override
         public String getCellType() {
             return YamlLogReader.Annotation.cellType;
@@ -110,12 +204,35 @@ public class YamlLogReader extends AbstractLogReader {
         // Controls
         // ========================================================================================================================
 
+        /**
+         * UI Controls class for YamlLogReader preferences.
+         *
+         * This class provides the user interface controls for configuring YAML log reader preferences.
+         * It extends the multiton serializer preference controls to add YAML-specific configuration options.
+         *
+         * UI Sections:
+         * - YAML log options table for object/value mappings
+         * - Standard serializer configuration controls
+         *
+         * @see AbstractMultitonSerializerPreference.Controls
+         */
         static public class Controls extends AbstractMultitonSerializerPreference.Controls {
 
+            /**
+             * Constructs UI controls for the specified cell class.
+             *
+             * @param clazz the cell class for which to create controls
+             */
             public Controls(Class<? extends ICell> clazz) {
                 super(clazz);
             }
 
+            /**
+             * Fills the fourth section of the preference controls with YAML-specific options.
+             *
+             * This method adds a table control for configuring YAML log options, allowing users
+             * to define object paths, value mappings, and parsing rules for YAML log files.
+             */
             protected void fillSection4() {
 
                 fillChildTable(container(), AbstractLogOption.class, cols(), TLK.EXPAND | TLK.CHECK | TLK.BUTTON, I18n.Log_YamlLogOptions, null,
@@ -126,6 +243,11 @@ public class YamlLogReader extends AbstractLogReader {
             };
         }
 
+        /**
+         * Returns the UI control provider for this preference class.
+         *
+         * @return the control provider instance for UI configuration
+         */
         public static ITlkControlProvider getControls() {
             return new Controls(AbstractLogReaderPreference.class);
         }
@@ -135,6 +257,15 @@ public class YamlLogReader extends AbstractLogReader {
     // Property Model
     // ========================================================================================================================
 
+    /**
+     * Creates and returns the property model for YamlLogReader configuration.
+     *
+     * This method extends the base log reader property model with YAML-specific properties.
+     *
+     * @param descriptor the serializer descriptor
+     * @param context the context object for property resolution
+     * @return the configured property model
+     */
     static public PropertyModel getPropertyModel(ISerializerDescriptor descriptor, Object context) {
         return AbstractLogReader.getPropertyModel(descriptor, context);
     }
@@ -143,11 +274,44 @@ public class YamlLogReader extends AbstractLogReader {
     // Parse
     // ========================================================================================================================
 
+    /**
+     * Creates a YAML option parser for the specified log option.
+     *
+     * This method creates and configures a YamlOptionParser instance
+     * that will handle the parsing logic for a specific YAML log option configuration.
+     *
+     * @param option the YAML log option to create a parser for
+     * @return the configured YAML option parser
+     * @throws ParseException if the option configuration is invalid
+     */
     @Override
     protected YamlOptionParser createOptionParser(AbstractLogOption option) throws ParseException {
         return new YamlOptionParser((YamlLogOption) option);
     }
 
+    /**
+     * Parses YAML log data from the input stream using Jackson YAML parser.
+     *
+     * This is the main parsing method that processes YAML log files. It uses a Jackson YAML parser
+     * for efficient streaming YAML processing and supports both full YAML documents and YAML fragments.
+     * The method handles object matching, value extraction, and path tracking.
+     *
+     * Processing Flow:
+     * 1. Creates YAML parser with proper character encoding
+     * 2. Initializes parsing stacks for object hierarchy tracking
+     * 3. Processes JSON tokens (START_OBJECT, END_OBJECT, etc.) with option matching
+     * 4. Extracts property values and builds attribute maps
+     * 5. Writes completed log messages to output
+     *
+     * YAML Structure Support:
+     * The method supports complex YAML structures including nested objects and arrays,
+     * with automatic path construction for hierarchical matching.
+     *
+     * @param progress the progress monitor for parsing operations
+     * @param in the input stream containing YAML log data
+     * @throws ParseException if parsing fails due to configuration or data errors
+     * @throws IOException if an I/O error occurs during reading
+     */
     @Override
     protected void parseLogs(IProgress progress, InputStream in) throws ParseException, IOException {
 
@@ -254,19 +418,59 @@ public class YamlLogReader extends AbstractLogReader {
         }
     }
 
+    /**
+     * YAML Option Parser for processing YAML objects based on configuration.
+     *
+     * This inner class handles the parsing logic for individual YAML log options. It matches
+     * YAML objects against configured paths, extracts data from property values,
+     * and populates log messages with the extracted information.
+     *
+     * Key Responsibilities:
+     * - Object path matching against configured patterns
+     * - Property value extraction for timestamps, names, and custom fields
+     * - Multi-domain timestamp parsing (primary and secondary)
+     * - Log entry naming and tagging based on YAML data
+     * - Action handling (start, terminate, ignore) for log entry lifecycle
+     *
+     * Path Matching:
+     * The parser supports hierarchical path matching with wildcards and specific path patterns.
+     * Object names can be exact matches or use "*" for any object at that level.
+     *
+     * @see YamlLogOption
+     * @see AbstractOptionParser
+     */
     class YamlOptionParser extends AbstractOptionParser {
 
+        // The object name to match (null for any object)
         public String name;
+        // The parent path to match (null for any path)
         public String ppath;
 
+        // Array of source value names indexed by source type
         protected String[] sourceValues;
 
+        // Value name for domain/timestamp extraction
         protected String domainValue;
+        // Value name for secondary domain extraction
         protected String domain2Value;
+        // Value name for primary name extraction
         protected String name1Value;
+        // Value name for secondary name extraction
         protected String name2Value;
+        // Value name for tag extraction
         protected String tagValue;
 
+        /**
+         * Constructs a YamlOptionParser with the specified YAML log option.
+         *
+         * This constructor initializes the parser with configuration from the provided YamlLogOption,
+         * setting up object path matching, source value mappings, and parsing parameters.
+         * It parses the object path to extract name and parent path components, and configures
+         * value mappings for timestamps, names, tags, and custom member fields.
+         *
+         * @param option the YamlLogOption containing configuration for this parser
+         * @throws ParseException if the option configuration is invalid or malformed
+         */
         public YamlOptionParser(YamlLogOption option) throws ParseException {
             super(option);
 
@@ -308,6 +512,17 @@ public class YamlLogReader extends AbstractLogReader {
             }
         }
 
+        /**
+         * Checks if the given object path and name match this parser's configuration.
+         *
+         * This method performs hierarchical matching against the configured object path pattern.
+         * It verifies that the object name matches (or is wildcard) and that the parent path
+         * ends with the configured parent path pattern.
+         *
+         * @param path the current object path in the YAML document
+         * @param name the object name to match
+         * @return true if the object matches this parser's configuration, false otherwise
+         */
         public boolean matches(String path, String name) {
             if (this.name != null)
                 if (!this.name.equals(name))
@@ -318,6 +533,16 @@ public class YamlLogReader extends AbstractLogReader {
             return true;
         }
 
+        /**
+         * Processes the start of a YAML object.
+         *
+         * This method is called when a matching YAML object starts. It handles action processing
+         * (start/terminate), and prepares for data extraction from object properties.
+         * For ACTION_START, it may write the previous message and clear it.
+         *
+         * @param message the log message to populate with extracted data
+         * @throws ParseException if parsing of extracted values fails
+         */
         public void startObject(LogMessage message) throws ParseException {
 
             if (action == AbstractLogOption.ACTION_IGNORE)
@@ -341,6 +566,18 @@ public class YamlLogReader extends AbstractLogReader {
 
         }
 
+        /**
+         * Processes the end of a YAML object, extracting data from property values.
+         *
+         * This method is called when a matching YAML object ends. It extracts timestamp domains,
+         * names, and custom member values from the object's property values, updates the log message,
+         * and handles ACTION_TERMINATE by writing the completed message.
+         *
+         * @param attributes the map of property names to values from the YAML object
+         * @param message the log message to populate with extracted data
+         * @throws SAXException if a SAX parsing error occurs
+         * @throws ParseException if parsing of extracted values fails
+         */
         public void endObject(Map<String, String> attributes, LogMessage message) throws SAXException, ParseException {
 
             boolean changed = false;

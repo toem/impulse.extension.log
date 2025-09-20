@@ -12,8 +12,38 @@ import de.toem.toolkits.pattern.element.instancer.BaseInstancerInformation;
 import de.toem.toolkits.pattern.ide.Ide;
 import de.toem.toolkits.pattern.registry.IRegistry;
 
+/**
+ * Instancer for creating and configuring PatternLogOption instances.
+ *
+ * This instancer provides specialized functionality for creating pattern log options,
+ * including automatic conversion from Log4J 1.2 pattern layouts to regular expressions.
+ * It handles the complex task of parsing Log4J format strings and mapping them to
+ * the structured configuration of PatternLogOption.
+ *
+ * Key features:
+ * - Automatic Log4J pattern conversion to regex patterns
+ * - Dynamic member mapping based on Log4J conversion specifiers
+ * - Support for date format conversion and timestamp handling
+ * - Proper escaping of meta-characters in patterns
+ *
+ * Implementation notes:
+ * - Extends {@link de.toem.toolkits.pattern.element.instancer.AbstractDefaultInstancer}
+ *   to provide custom instantiation logic
+ * - Uses regex pattern compilation for date format conversion
+ * - Handles various Log4J conversion characters (%c, %d, %m, %p, etc.)
+ * - Maintains compatibility with Log4J 1.2 pattern layout specifications
+ *
+ * Copyright (c) 2013-2025 Thomas Haber
+ * All rights reserved.
+ *
+ */
 public class PatternLogOptionInstancer extends AbstractDefaultInstancer {
 
+    /**
+     * Returns the cell type for PatternLogOption.
+     *
+     * @return the cell type string
+     */
     @Override
     public String getCellType() {
         return PatternLogOption.TYPE;
@@ -44,13 +74,29 @@ public class PatternLogOptionInstancer extends AbstractDefaultInstancer {
 //            return super.createOne(id, container);
 //    }
 
+    // Default regex group pattern
     private static final String DEFAULT_GROUP = "(.*?)";
+    // Greedy regex group pattern
     private static final String GREEDY_GROUP = "(.*)";
+    // No-space regex group pattern
     private static final String NOSPACE_GROUP = "(\\s*?\\S*?\\s*?)";
+    // Valid date format characters
     private static final String VALID_DATEFORMAT_CHARS = "GyYMwWDdFEuaHkKhmsSzZX";
+    // Pattern for valid date format characters
     private static final String VALID_DATEFORMAT_CHAR_PATTERN = "[" + VALID_DATEFORMAT_CHARS + "]";
+    // Integer regex group pattern
     private static final String INTEGER_GROUP = "([0-9\\-\\+]*?)";
 
+    /**
+     * Converts a Log4J 1.2 pattern layout string to a PatternLogOption configuration.
+     *
+     * This method parses Log4J conversion specifiers (like %c, %d, %m, %p) and
+     * automatically configures the corresponding PatternLogOption fields including
+     * regex pattern generation, member mapping, and domain configuration.
+     *
+     * @param pattern the Log4J pattern string to convert
+     * @param option the PatternLogOption instance to configure
+     */
     public void readLog4jPattern(String pattern, PatternLogOption option) {
         int pos = 0;
         int start = 0;
@@ -212,6 +258,18 @@ public class PatternLogOptionInstancer extends AbstractDefaultInstancer {
         }
     }
 
+    /**
+     * Adds a member configuration to the pattern and option.
+     *
+     * @param regular the StringBuilder for the regex pattern
+     * @param option the PatternLogOption to configure
+     * @param nextMember the next available member index
+     * @param group the regex group pattern to append
+     * @param name the member name
+     * @param type the signal type
+     * @param descriptor the member descriptor
+     * @return the updated next member index
+     */
     private int addMember(StringBuilder regular, PatternLogOption option, int nextMember, String group, String name, int type, String descriptor) {
         regular.append(group);
         if (nextMember < PatternLogOption.MEMBER_MAX) {
@@ -223,6 +281,12 @@ public class PatternLogOptionInstancer extends AbstractDefaultInstancer {
         return nextMember;
     }
 
+    /**
+     * Gets the date format string for a Log4J date pattern.
+     *
+     * @param datePattern the Log4J date pattern (ABSOLUTE, ISO8601, DATE, or custom)
+     * @return the corresponding date format string
+     */
     public static String getDateFormat(String datePattern) {
 
         if (datePattern.equals("ABSOLUTE")) {
@@ -237,6 +301,12 @@ public class PatternLogOptionInstancer extends AbstractDefaultInstancer {
         return datePattern;
     }
 
+    /**
+     * Converts a date format string to a regex pattern.
+     *
+     * @param dateFormat the date format string to convert
+     * @return the regex pattern for matching the date format
+     */
     private String convertDateFormat(String dateFormat) {
 
         String result = "";
@@ -249,6 +319,12 @@ public class PatternLogOptionInstancer extends AbstractDefaultInstancer {
         return result;
     }
 
+    /**
+     * Replaces meta-characters in the input string with escaped versions for regex.
+     *
+     * @param input the input string to escape
+     * @return the escaped string safe for use in regex patterns
+     */
     private static String replaceMetaChars(String input) {
 
         input = input.replaceAll("\\\\", "\\\\\\");

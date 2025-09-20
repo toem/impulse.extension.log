@@ -17,6 +17,33 @@ import de.toem.toolkits.ui.tlk.ITlkControlProvider;
 import de.toem.toolkits.ui.tlk.TLK;
 
 @CellAnnotation(annotation = YamlLogOption.Annotation.class)
+/**
+ * YAML log option for configuring YAML object parsing patterns.
+ *
+ * This option defines a single YAML parsing configuration that can be used by
+ * YamlLogReader to parse YAML objects based on hierarchical path patterns
+ * and value mappings. Each option specifies a YAML object path pattern
+ * and a comma-separated list of value names to extract as source values
+ * for domain, name, and member data extraction.
+ *
+ * Key features:
+ * - Path-based YAML object selection using hierarchical path patterns
+ * - Configurable value mapping from YAML values to source values
+ * - Support for YAML object values as source
+ * - Dynamic source validation based on configured value list
+ * - Integration with YAML streaming parser for efficient processing
+ *
+ * Implementation notes:
+ * - This class extends AbstractLogOption and follows the project property-model conventions
+ * - Path patterns support hierarchical navigation (e.g., "parent/child")
+ * - Value names are comma-separated and indexed for source mapping
+ * - Supports both YAML object values and text content as sources
+ * - Compatible with YAML streaming parser token-based processing
+ *
+ * Copyright (c) 2013-2025 Thomas Haber
+ * All rights reserved.
+ *
+ */
 public class YamlLogOption extends AbstractLogOption {
     public static final String TYPE = Annotation.id;
 
@@ -29,6 +56,9 @@ public class YamlLogOption extends AbstractLogOption {
         public static final Class<? extends IInstancer>[] instancer = new Class[] { Instancer.class };
     }
 
+    /**
+     * Instancer for YamlLogOption.
+     */
     @RegistryAnnotation(annotation = Instancer.Annotation.class)
     public static class Instancer extends AbstractDefaultInstancer {
 
@@ -37,6 +67,13 @@ public class YamlLogOption extends AbstractLogOption {
             public static final String cellType = TYPE;
         }
 
+        /**
+         * Initializes a single cell instance.
+         *
+         * @param id the cell ID
+         * @param cell the cell
+         * @param container the container
+         */
         @Override
         protected void initOne(String id, ICell cell, ICell container) {
             super.initOne(id, cell, container);
@@ -48,21 +85,27 @@ public class YamlLogOption extends AbstractLogOption {
     // Members
     // ========================================================================================================================
     
-    // Yaml pattern
+    // YAML object path pattern for selection
     public String path;
     @FieldAnnotation(affects = { FieldAnnotation.ALL_FIELDS })
+    // Comma-separated list of value names to extract
     public String values;
 
     // source
+    // Source index for first value
     public static final int SOURCE_VALUE1 = 1;
 
     // action
+    // Action labels for YAML parsing
     public static final String[] ACTION_LABELS = { I18n.General_Ignore, I18n.YamlLogConfiguration_ActionNew, I18n.YamlLogConfiguration_ActionAdd,
             I18n.YamlLogConfiguration_ActionTerminate};
+    // Whether to add record position
     public boolean addRecPos = true;
 
     // source
+    // Constant for no source
     public static final int SOURCE_NONE = 0;
+    // Source labels for value mapping
     public static final String[] SOURCE_LABELS = { I18n.General_None, I18n.YamlLogConfiguration_Source + " 1",
             I18n.YamlLogConfiguration_Source + " 2", I18n.YamlLogConfiguration_Source + " 3", I18n.YamlLogConfiguration_Source + " 4",
             I18n.YamlLogConfiguration_Source + " 5", I18n.YamlLogConfiguration_Source + " 6", I18n.YamlLogConfiguration_Source + " 7",
@@ -75,16 +118,33 @@ public class YamlLogOption extends AbstractLogOption {
     // Accessors
     // ========================================================================================================================
 
+    /**
+     * Checks if the given source number is valid based on the configured values.
+     *
+     * @param n the source number to check
+     * @return true if the source number is valid
+     */
     public boolean hasValidSource(int n) {
         String[] splitted = values != null ? values.split(",") : null;
         return splitted != null && splitted.length > (n - SOURCE_VALUE1) && n >= SOURCE_VALUE1 ? true : false;
     }
 
+    /**
+     * Gets the source identifier for the given source number.
+     *
+     * @param n the source number
+     * @return the source identifier, or null if invalid
+     */
     public String getSourceIdentifier(int n) {
         String[] splitted = values != null ? values.split(",") : null;
         return splitted != null && splitted.length > (n - SOURCE_VALUE1) && n >= SOURCE_VALUE1 ? splitted[n - SOURCE_VALUE1] : null;
     }
 
+    /**
+     * Gets the maximum source number based on the configured values.
+     *
+     * @return the maximum source number
+     */
     public int getMaxSource() {
         String[] splitted = values != null ? values.split(",") : null;
         return splitted != null ? splitted.length : 0;
@@ -94,8 +154,16 @@ public class YamlLogOption extends AbstractLogOption {
     // Controls
     // ========================================================================================================================
 
+    /**
+     * Controls for YamlLogOption.
+     */
     public static class Controls extends AbstractLogOption.Controls {
 
+        /**
+         * Constructor.
+         *
+         * @param clazz the class
+         */
         public Controls(Class<? extends ICell> clazz) {
             super(clazz);
             this.sourceLabels = SOURCE_LABELS;
@@ -103,6 +171,12 @@ public class YamlLogOption extends AbstractLogOption {
         }
 
        
+        /**
+         * Fills the match section of the UI.
+         *
+         * @throws NoSuchFieldException if field not found
+         * @throws SecurityException if security issue
+         */
         @Override
         protected void fillMatch() throws NoSuchFieldException, SecurityException {
 
@@ -112,6 +186,12 @@ public class YamlLogOption extends AbstractLogOption {
                     tlk().ld(cols(), TLK.GRAB, TLK.NO_HINT, TLK.FILL, TLK.DEFAULT), TLK.LABEL | TLK.BORDER, I18n.YamlConfigurationDialog_Values);
         }
 
+        /**
+         * Fills the action section of the UI.
+         *
+         * @throws NoSuchFieldException if field not found
+         * @throws SecurityException if security issue
+         */
         @Override
         protected void fillAction() throws NoSuchFieldException, SecurityException {
             tlk().addButtonSet(container(), new RadioSetController(editor(), clazz().getField("action")), 2, cols(), TLK.RADIO | TLK.LABEL, YamlLogOption.ACTION_LABELS,
@@ -119,6 +199,11 @@ public class YamlLogOption extends AbstractLogOption {
         }
 
     }
+    /**
+     * Returns the controls provider.
+     *
+     * @return the controls
+     */
     public static ITlkControlProvider getControls() {
         return new Controls(YamlLogOption.class);
     }

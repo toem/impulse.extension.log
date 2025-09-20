@@ -38,6 +38,34 @@ import de.toem.toolkits.ui.tlk.TLK;
 import de.toem.toolkits.utils.serializer.ParseException;
 
 @RegistryAnnotation(annotation = XmlLogReader.Annotation.class)
+/**
+ * XML Log Reader implementation for the Impulse logging framework.
+ *
+ * This class provides comprehensive XML log file parsing capabilities, supporting both full XML documents
+ * and XML fragments. It uses SAX (Simple API for XML) parsing for efficient, streaming XML processing
+ * that can handle large log files without loading the entire document into memory.
+ *
+ * Key features:
+ * - Streaming XML parsing using SAX parser for memory efficiency
+ * - Support for XML fragments with automatic wrapper element injection
+ * - XPath-like element matching for log entry identification
+ * - Flexible attribute and text content extraction
+ * - Multi-domain timestamp support (primary and secondary domains)
+ * - Configurable log entry naming and tagging
+ * - Custom member field extraction from XML elements and attributes
+ *
+ * Implementation notes:
+ * - This class extends {@link de.toem.impulse.usecase.logging.AbstractLogReader}
+ *   and follows the project conventions for log processing.
+ * - Uses SAX parser for streaming XML processing to handle large files efficiently
+ * - Supports XPath-like element path patterns for flexible log entry identification
+ * - Integrates with XmlLogOption for configuration of parsing rules
+ * - Compatible with XML streaming parser token-based processing
+ *
+ * Copyright (c) 2013-2025 Thomas Haber
+ * All rights reserved.
+ *
+ */
 public class XmlLogReader extends AbstractLogReader {
     public static class Annotation extends AbstractSingleDomainRecordReader.Annotation {
         public static final Class<? extends ICell> multiton = Preference.class;
@@ -58,10 +86,30 @@ public class XmlLogReader extends AbstractLogReader {
     // Constructor
     // ========================================================================================================================
 
+    /**
+     * Default constructor for XmlLogReader.
+     * 
+     * Creates a new XML log reader instance with default configuration.
+     * The reader will need to be configured with options before use.
+     */
     public XmlLogReader() {
         super();
     }
 
+    /**
+     * Constructs an XmlLogReader with full configuration.
+     * 
+     * Creates a new XML log reader instance with the specified configuration parameters.
+     * This constructor initializes the reader with all necessary components for immediate use.
+     * 
+     * @param descriptor the serializer descriptor defining the reader's capabilities
+     * @param contentName the name of the content being processed
+     * @param contentType the MIME type of the content
+     * @param cellType the type identifier for the reader cell
+     * @param configuration the configuration string for the reader
+     * @param properties array of property key-value pairs for configuration
+     * @param in the input stream containing the XML data to be parsed
+     */
     public XmlLogReader(ISerializerDescriptor descriptor, String contentName, String contentType, String cellType, String configuration,
             String[][] properties, InputStream in) {
         super(descriptor, configuration, properties, getPropertyModel(descriptor, null), in);
@@ -71,6 +119,21 @@ public class XmlLogReader extends AbstractLogReader {
     // Preferences
     // ========================================================================================================================
 
+    /**
+     * Preference configuration class for XmlLogReader.
+     * 
+     * This class defines the configuration preferences and UI controls for the XML log reader.
+     * It extends the abstract log reader preference to provide XML-specific configuration options
+     * and integrates with the Impulse framework's preference system.
+     * 
+     * Configuration Elements:
+     * - XML fragment processing toggle
+     * - XML log options for element/attribute mapping
+     * - Serializer configuration for data persistence
+     * 
+     * @see AbstractLogReader.AbstractLogReaderPreference
+     * @see XmlLogOption
+     */
     @CellAnnotation(annotation = Preference.Annotation.class, dynamicChildren = { DefaultSerializerConfiguration.TYPE, XmlLogOption.TYPE })
     public static class Preference extends AbstractLogReader.AbstractLogReaderPreference {
         public static final String TYPE = Annotation.id;
@@ -86,6 +149,12 @@ public class XmlLogReader extends AbstractLogReader {
 
         }
 
+        /**
+         * Instancer for XmlLogReader preferences.
+         * 
+         * This class handles the instantiation and initialization of XML log reader preference cells.
+         * It extends the abstract default instancer to provide XML-specific setup logic.
+         */
         @RegistryAnnotation(annotation = Instancer.Annotation.class)
         public static class Instancer extends AbstractDefaultInstancer {
 
@@ -94,6 +163,16 @@ public class XmlLogReader extends AbstractLogReader {
                 public static final String cellType = TYPE;
             }
 
+            /**
+             * Initializes a single cell instance.
+             * 
+             * This method is called to initialize a new cell instance with the specified ID and container.
+             * It performs any necessary setup for the XML log reader preference cell.
+             * 
+             * @param id the unique identifier for the cell
+             * @param cell the cell instance to initialize
+             * @param container the parent container for the cell
+             */
             @Override
             protected void initOne(String id, ICell cell, ICell container) {
                 super.initOne(id, cell, container);
@@ -101,11 +180,21 @@ public class XmlLogReader extends AbstractLogReader {
             }
         }
 
+        /**
+         * Returns the serializer class for this preference.
+         * 
+         * @return the XmlLogReader class for serialization
+         */
         @Override
         public Class<? extends ICellSerializer> getClazz() {
             return XmlLogReader.class;
         }
 
+        /**
+         * Returns the cell type identifier for this preference.
+         * 
+         * @return the cell type string identifier
+         */
         @Override
         public String getCellType() {
             return XmlLogReader.Annotation.cellType;
@@ -115,12 +204,35 @@ public class XmlLogReader extends AbstractLogReader {
         // Controls
         // ========================================================================================================================
 
+        /**
+         * UI Controls class for XmlLogReader preferences.
+         * 
+         * This class provides the user interface controls for configuring XML log reader preferences.
+         * It extends the multiton serializer preference controls to add XML-specific configuration options.
+         * 
+         * UI Sections:
+         * - XML log options table for element/attribute mappings
+         * - Standard serializer configuration controls
+         * 
+         * @see AbstractMultitonSerializerPreference.Controls
+         */
         static public class Controls extends AbstractMultitonSerializerPreference.Controls {
 
+            /**
+             * Constructs UI controls for the specified cell class.
+             * 
+             * @param clazz the cell class for which to create controls
+             */
             public Controls(Class<? extends ICell> clazz) {
                 super(clazz);
             }
 
+            /**
+             * Fills the fourth section of the preference controls with XML-specific options.
+             * 
+             * This method adds a table control for configuring XML log options, allowing users
+             * to define element paths, attribute mappings, and parsing rules for XML log files.
+             */
             protected void fillSection4() {
 
                 fillChildTable(container(), AbstractLogOption.class, cols(), TLK.EXPAND | TLK.CHECK | TLK.BUTTON, I18n.Log_XmlLogOptions, null,
@@ -131,6 +243,11 @@ public class XmlLogReader extends AbstractLogReader {
             };
         }
 
+        /**
+         * Returns the UI control provider for this preference class.
+         * 
+         * @return the control provider instance for UI configuration
+         */
         public static ITlkControlProvider getControls() {
             return new Controls(AbstractLogReaderPreference.class);
         }
@@ -140,6 +257,16 @@ public class XmlLogReader extends AbstractLogReader {
     // Property Model
     // ========================================================================================================================
 
+    /**
+     * Creates and returns the property model for XmlLogReader configuration.
+     * 
+     * This method extends the base log reader property model with XML-specific properties
+     * such as fragment processing support.
+     * 
+     * @param descriptor the serializer descriptor
+     * @param context the context object for property resolution
+     * @return the configured property model
+     */
     static public PropertyModel getPropertyModel(ISerializerDescriptor descriptor, Object context) {
         return AbstractLogReader.getPropertyModel(descriptor, context).add("xmlFragment", false, null, "xmlFragment", null, null);
     }
@@ -148,11 +275,45 @@ public class XmlLogReader extends AbstractLogReader {
     // Parse
     // ========================================================================================================================
 
+    /**
+     * Creates an XML option parser for the specified log option.
+     * 
+     * This method creates and configures an XmlOptionParser instance
+     * that will handle the parsing logic for a specific XML log option configuration.
+     * 
+     * @param option the XML log option to create a parser for
+     * @return the configured XML option parser
+     * @throws ParseException if the option configuration is invalid
+     */
     @Override
     protected XmlOptionParser createOptionParser(AbstractLogOption option) throws ParseException {
         return new XmlOptionParser((XmlLogOption) option);
     }
 
+    /**
+     * Parses XML log data from the input stream using SAX parsing.
+     * 
+     * This is the main parsing method that processes XML log files. It uses a SAX parser
+     * for efficient streaming XML processing and supports both full XML documents and XML fragments.
+     * The method handles element matching, attribute extraction, and text content processing.
+     * 
+     * Processing Flow:
+     * 1. Checks for XML fragment mode and wraps input if necessary
+     * 2. Initializes parsing stacks for element hierarchy tracking
+     * 3. Creates SAX parser with custom handler for XML events
+     * 4. Processes start/end element events with option matching
+     * 5. Extracts text content and attribute values
+     * 6. Writes completed log messages to output
+     * 
+     * XML Fragment Support:
+     * When xmlFragment property is true, the method automatically wraps the input stream
+     * with dummy root elements to create valid XML structure for parsing.
+     * 
+     * @param progress the progress monitor for parsing operations
+     * @param in the input stream containing XML log data
+     * @throws ParseException if parsing fails due to configuration or data errors
+     * @throws IOException if an I/O error occurs during reading
+     */
     @Override
     protected void parseLogs(IProgress progress, InputStream in) throws ParseException, IOException {
 
@@ -177,20 +338,42 @@ public class XmlLogReader extends AbstractLogReader {
 
             saxParser.parse(in, new DefaultHandler() {
 
-                @Override
-                public void startDocument() throws SAXException {
+            /**
+             * Called at the start of document parsing.
+             * 
+             * @throws SAXException if a parsing error occurs
+             */
+            @Override
+            public void startDocument() throws SAXException {
 
-                    super.startDocument();
-                }
+                super.startDocument();
+            }
 
-                @Override
-                public void endDocument() throws SAXException {
+            /**
+             * Called at the end of document parsing.
+             * 
+             * @throws SAXException if a parsing error occurs
+             */
+            @Override
+            public void endDocument() throws SAXException {
 
-                    super.endDocument();
-                }
+                super.endDocument();
+            }
 
-                @Override
-                public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+            /**
+             * Called when an XML element starts.
+             * 
+             * This method handles element matching, parser stacking, and data extraction
+             * from element attributes for matching log options.
+             * 
+             * @param uri the namespace URI
+             * @param localName the local name
+             * @param qName the qualified name
+             * @param attributes the element attributes
+             * @throws SAXException if a parsing error occurs
+             */
+            @Override
+            public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 
                     boolean match = false;
                     String path = pathStack.isEmpty() ? "/" : pathStack.peek();
@@ -217,8 +400,19 @@ public class XmlLogReader extends AbstractLogReader {
                     super.startElement(uri, localName, qName, attributes);
                 }
 
-                @Override
-                public void endElement(String uri, String localName, String qName) throws SAXException {
+            /**
+             * Called when an XML element ends.
+             * 
+             * This method handles element termination, text content extraction,
+             * and log message writing for matching parsers.
+             * 
+             * @param uri the namespace URI
+             * @param localName the local name
+             * @param qName the qualified name
+             * @throws SAXException if a parsing error occurs
+             */
+            @Override
+            public void endElement(String uri, String localName, String qName) throws SAXException {
                     XmlOptionParser parser = parserStack.pop();
                     String text = textStack.pop().toString().trim();
                     pathStack.pop();
@@ -232,18 +426,39 @@ public class XmlLogReader extends AbstractLogReader {
                     super.endElement(uri, localName, qName);
                 }
 
-                @Override
-                public void characters(char[] ch, int start, int length) throws SAXException {
-                    if (length > 0) {
-                        textStack.peek().append(ch, start, length);
-                        super.characters(ch, start, length);
-                    }
+            /**
+             * Called when character data is encountered.
+             * 
+             * This method accumulates text content for the current element.
+             * 
+             * @param ch the character array
+             * @param start the start position
+             * @param length the length of the character data
+             * @throws SAXException if a parsing error occurs
+             */
+            @Override
+            public void characters(char[] ch, int start, int length) throws SAXException {
+                if (length > 0) {
+                    textStack.peek().append(ch, start, length);
+                    super.characters(ch, start, length);
                 }
+            }
 
-                @Override
-                public InputSource resolveEntity(String publicId, String systemId) throws org.xml.sax.SAXException, java.io.IOException {
-                    return new org.xml.sax.InputSource(new java.io.StringReader(""));
-                }
+            /**
+             * Resolves external entities.
+             * 
+             * This method returns an empty input source to prevent external entity resolution.
+             * 
+             * @param publicId the public identifier
+             * @param systemId the system identifier
+             * @return an empty input source
+             * @throws SAXException if a parsing error occurs
+             * @throws IOException if an I/O error occurs
+             */
+            @Override
+            public InputSource resolveEntity(String publicId, String systemId) throws org.xml.sax.SAXException, java.io.IOException {
+                return new org.xml.sax.InputSource(new java.io.StringReader(""));
+            }
             });
 
             // write final message if not already done
@@ -264,19 +479,60 @@ public class XmlLogReader extends AbstractLogReader {
 
     }
 
+    /**
+     * XML Option Parser for processing XML elements based on configuration.
+     * 
+     * This inner class handles the parsing logic for individual XML log options. It matches
+     * XML elements against configured paths, extracts data from attributes and text content,
+     * and populates log messages with the extracted information.
+     * 
+     * Key Responsibilities:
+     * - Element path matching against configured patterns
+     * - Attribute value extraction for timestamps, names, and custom fields
+     * - Text content processing for element values
+     * - Multi-domain timestamp parsing (primary and secondary)
+     * - Log entry naming and tagging based on XML data
+     * - Action handling (start, terminate, ignore) for log entry lifecycle
+     * 
+     * Path Matching:
+     * The parser supports XPath-like element matching with wildcards and specific path patterns.
+     * Element names can be exact matches or use "*" for any element at that level.
+     * 
+     * @see XmlLogOption
+     * @see AbstractOptionParser
+     */
     class XmlOptionParser extends AbstractOptionParser {
 
+        // The element name to match (null for any element)
         public String name;
+        // The parent path to match (null for any path)
         public String ppath;
 
+        // Array of source attribute names indexed by source type
         protected String[] sourceAttributes;
 
+        // Attribute name for domain/timestamp extraction
         protected String domainAttribute;
+        // Attribute name for secondary domain extraction
         protected String domain2Attribute;
+        // Attribute name for primary name extraction
         protected String name1Attribute;
+        // Attribute name for secondary name extraction
         protected String name2Attribute;
+        // Attribute name for tag extraction
         protected String tagAttribute;
 
+        /**
+         * Constructs an XmlOptionParser with the specified XML log option.
+         * 
+         * This constructor initializes the parser with configuration from the provided XmlLogOption,
+         * setting up element path matching, source attribute mappings, and parsing parameters.
+         * It parses the element path to extract name and parent path components, and configures
+         * attribute mappings for timestamps, names, tags, and custom member fields.
+         * 
+         * @param option the XmlLogOption containing configuration for this parser
+         * @throws ParseException if the option configuration is invalid or malformed
+         */
         public XmlOptionParser(XmlLogOption option) throws ParseException {
             super(option);
 
@@ -318,6 +574,17 @@ public class XmlLogReader extends AbstractLogReader {
             }
         }
 
+        /**
+         * Checks if the given element path and name match this parser's configuration.
+         * 
+         * This method performs XPath-like matching against the configured element path pattern.
+         * It verifies that the element name matches (or is wildcard) and that the parent path
+         * ends with the configured parent path pattern.
+         * 
+         * @param path the current element path in the XML document
+         * @param name the element name to match
+         * @return true if the element matches this parser's configuration, false otherwise
+         */
         public boolean matches(String path, String name) {
             if (this.name != null)
                 if (!this.name.equals(name))
@@ -328,6 +595,21 @@ public class XmlLogReader extends AbstractLogReader {
             return true;
         }
 
+        /**
+         * Processes the start of an XML element, extracting data from attributes.
+         * 
+         * This method is called when a matching XML element starts. It handles action processing
+         * (start/terminate), extracts timestamp domains, names, and custom member values from
+         * element attributes, and updates the log message accordingly. For ACTION_START,
+         * it may write the previous message and clear it.
+         * 
+         * @param uri the namespace URI of the element
+         * @param localName the local name of the element
+         * @param qName the qualified name of the element
+         * @param attributes the attributes of the element
+         * @param message the log message to populate with extracted data
+         * @throws ParseException if parsing of extracted values fails
+         */
         public void startElement(String uri, String localName, String qName, Attributes attributes, LogMessage message) throws ParseException {
 
             if (action == AbstractLogOption.ACTION_IGNORE)
@@ -409,6 +691,21 @@ public class XmlLogReader extends AbstractLogReader {
 
         }
 
+        /**
+         * Processes the end of an XML element, extracting data from text content.
+         * 
+         * This method is called when a matching XML element ends. It extracts timestamp domains,
+         * names, and custom member values from the element's text content, updates the log message,
+         * and handles ACTION_TERMINATE by writing the completed message.
+         * 
+         * @param uri the namespace URI of the element
+         * @param localName the local name of the element
+         * @param qName the qualified name of the element
+         * @param text the text content of the element
+         * @param message the log message to populate with extracted data
+         * @throws SAXException if a SAX parsing error occurs
+         * @throws ParseException if parsing of extracted values fails
+         */
         public void endElement(String uri, String localName, String qName, String text, LogMessage message) throws SAXException, ParseException {
 
             boolean changed = false;

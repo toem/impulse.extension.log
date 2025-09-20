@@ -31,7 +31,7 @@
 		point="de.toem.toolkits.general.templates">
 
 
-    <reader.log.pattern name="FlexNoc" namePattern="simout\.txt">
+    <reader.log.pattern name="FN Log" namePattern="simout\.txt">
         <properties len="1">
             <domainBase>ps</domainBase>
         </properties>
