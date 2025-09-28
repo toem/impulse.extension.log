@@ -191,10 +191,12 @@ public class JsonLogReader extends AbstractLogReader {
              */
             protected void fillSection4() {
 
-                fillChildTable(container(), AbstractLogOption.class, cols(), TLK.EXPAND | TLK.CHECK | TLK.BUTTON, I18n.Log_JsonLogOptions, null,
+                fillChildTable(container(), AbstractLogOption.class, cols(), TLK.EXPAND | TLK.CHECK | TLK.BUTTON | TLK.OPEN, I18n.Log_JsonLogOptions, null,
                         I18n.Log_JsonLogOptions_Description, I18n.Log_JsonLogOptions_HelpURL);
 
-                super.fillSection4();
+                fillChildTable(container(), ISerializerDescriptor.Configuration.class, tlk().ld(cols(), TLK.FILL, TLK.NO_HINT, TLK.GRAB, TLK.NO_HINT),
+                        TLK.GROUP | TLK.CHECK | TLK.BUTTON, I18n.General_SerializerConfigurations, null,
+                        I18n.General_SerializerConfigurations_Description, I18n.General_SerializerConfigurations_HelpURL);
 
             };
         }

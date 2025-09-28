@@ -9,7 +9,7 @@ The impulse Log extension is designed to enhance the impulse tool by providing r
 ### License
 
 Unless otherwise indicated below, the Content is provided to you under the terms and conditions of the impulse End-User Licence.  
-A copy of the License is available in the "about_files" sub-folder of the bundle.
+A copy of the License is available in the "about_files" sub-folder: [eula.txt](about_files/eula.txt)
 
 ### Third Party Content
 

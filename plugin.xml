@@ -42,20 +42,11 @@
             <example>Info:    3298 ns TransportCheckPoint:i_bpu_noc_arch/CPI_Switch_bpu_rd0_I: bwdOutTick               : STATE is IDLE&lt;br/&gt;Info:     112 ns NttpSimpleSlavePort:NTTP(Not initialized): nb_transport_fw          :  phase END_PARTIAL_RESP delay 0 s</example>
         </reader.log.pattern.option>
         <reader.log.pattern.option name="Ignore"/>
-        <serializer.configuration.default name="myFlexNoCConfig">
-            <properties len="1">
-                <addLines>true</addLines>
-            </properties>
-            <record.analysis name="Analysis" producer="FlexNocTransactionAnalyzer">
-                <record.source name="i_vpu_noc_arch" reference="../i_vpu_noc_arch"/>
-                <record.source name="i_vpu2ddr_nsp2axi_1to4_interleave_bridge0_arch" reference="../i_vpu2ddr_nsp2axi_1to4_interleave_bridge0_arch"/>
-                <record.signal name="Statistics" domainBase="n" count="2" sampleType="7" end="2">
-                    <legend len="1">TGVnZW5kBxEAAAVMYWJlbAAABWxhYmVsBP////8AAQAITG9jYXRpb24AAAAE/////wACAANDbWQLVExNIENvbW1hbmQPcmktY29tbWFuZC1maWxsAAT/////AAMABUNvdW50AAAAAv////8ABAAFQmVnaW4AAAAD/////wJucwUAA0VuZAAAAAP/////Am5zBgAHTGF0ZW5jeQAAB2xhdGVuY3kH/////wAHBwNNaW4AAAtsYXRlbmN5LG1pbgP/////Am5zCAcDTWF4AAALbGF0ZW5jeSxtYXgD/////wJucwkHA01lZAAAC2xhdGVuY3ksbWVkA/////8CbnMKAAVCZWF0cwAAAAf/////AAsLB1JlcS5NaW4AAAAC/////wAMCwdSZXEuTWF4AAAAAv////8ADQsHUmVzLk1pbgAAAAL/////AA4LB1Jlcy5NYXgAAAAC/////wAPAAlCYW5kd2lkdGgAAAAD/////wdkZWMvI0dCEAAHUGVuZGluZwAAAAL/////AAwYaV92cHVfbm9jX2FyY2gvX0NQX3ZwdV9JAQEAAAAQUGVuZGluZ0AzYjlhY2M1OAIBAAAAAnBzBAEAAAAQUGVuZGluZ0AzYjlhY2NhOAICAAAAEFBlbmRpbmdAM2I5YWNjYmMCAwAAABBQZW5kaW5nQDNiOWFjZDBjAgQAAAAQUGVuZGluZ0AzYjlhY2QyMAIFAAAAEFBlbmRpbmdAM2I5YWNkNzACBgAAABBQZW5kaW5nQDNiOWFjZDg0AgcAAAAQUGVuZGluZ0AzYjlhY2RkNAIIAAAAQGlfdnB1MmRkcl9uc3AyYXhpXzF0bzRfaW50ZXJsZWF2ZV9icmlkZ2UwX2FyY2gvX0NQX3ZwdTJkZHJfaW4wX0kBAgAAAAtQZW5kaW5nQDI1OAIJAAAA</legend>
-                    <samples len="1">FQgGAA8AQP8IAAQMX0NQX3ZwdV9JL1JEAQQYaV92cHVfbm9jX2FyY2gvX0NQX3ZwdV9JAgQCUkQDAgErBAMIAAAAAAAAXUAFAwgAAAAAAFB/QAYHIQcDCAAAAAAAgF5ACAMIAAAAAACQdkAJAwgAAAAAAJBwQAoHEAsCAQEMAgEBDQIBCA4CAQgPAwg2sHdMDezLQBACAQokAxABACQJBgEBAQGfwC0IJAkGAQIBAcIATQgkCQYBAwEB5ShwCCQJBgEEAQEJaI8IJAkGAQUBASzg7AokCQYBBgEBT/ATCyQJBgEHAQFyGDcLJAkGAQgBAZVYVgtAHwsABBRfQ1BfdnB1MmRkcl9pbjBfSS9SRAEEQGlfdnB1MmRkcl9uc3AyYXhpXzF0bzRfaW50ZXJsZWF2ZV9icmlkZ2UwX2FyY2gvX0NQX3ZwdTJkZHJfaW4wX0kCBAJSRAMCASwEAwgAAAAAAAA0QAUDCAAAAAAAkH9ABgchBwMIAAAAAACAXkAIAwgAAAAAAJB2QAkDCAAAAAAAkHBACgcQCwIBAQwCAQENAgEIDgIBCA8DCH7QUYEvrsZAEAIBAQEkAxACACQJBgIJAQHWYD0I</samples>
-                </record.signal>
-            </record.analysis>
-        </serializer.configuration.default>
-        <serializer.configuration.default name="Configuration"/>
+            <serializer.configuration.default name="Metrix">
+	            <record.analysis name="Analysis" producer="de.toem.impulse.cellProducer.transactionMetrix">
+	                <record.source name="Source" reference=".."/>
+	            </record.analysis>
+	        </serializer.configuration.default>
     </reader.log.pattern>
 
     <reader.log.pattern name="Log4j [%p] %c %M - %m%n">

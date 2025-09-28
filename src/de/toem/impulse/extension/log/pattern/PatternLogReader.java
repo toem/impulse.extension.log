@@ -207,7 +207,7 @@ public class PatternLogReader extends AbstractLogReader {
              */
             protected void fillSection4() {
 
-                fillChildTable(container(), AbstractLogOption.class, cols(), TLK.EXPAND | TLK.CHECK | TLK.BUTTON, I18n.Log_PatternLogOptions, null,
+                fillChildTable(container(), AbstractLogOption.class, cols(), TLK.EXPAND | TLK.CHECK | TLK.BUTTON| TLK.OPEN, I18n.Log_PatternLogOptions, null,
                         I18n.Log_PatternLogOptions_Description, I18n.Log_PatternLogOptions_HelpURL);
 
                 fillChildTable(container(), ISerializerDescriptor.Configuration.class, tlk().ld(cols(), TLK.FILL, TLK.NO_HINT, TLK.GRAB, TLK.NO_HINT),
