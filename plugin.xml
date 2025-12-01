@@ -167,4 +167,15 @@
 </reader.log.json>
 
 </extension> 
+
+<extension
+	point="de.toem.toolkits.general.doc">
+	  <book
+	  		id="de.toem.impulse.doc.log"
+	        uri="help:///impulse-extension/log/"
+	        chapters="csv-reader.md, json-log-reader.md, pattern-log-reader.md, xml-log-reader.md, yaml-log-reader.md"
+	        type="taggedMd"
+	        path="/doc/">
+	  </book>			  	  		  		
+</extension>
 </plugin>

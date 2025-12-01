@@ -44,13 +44,35 @@ Additional formats may be added in the future as the needs of the impulse commun
 
 ## Quick Start
 
-* Select a file to view.
-* Use the context menus 'Open with' and select the impulse Viewer (You may select the impulse Viewer as the default option at this point).
-* On activation, it may take a while (a few secs) to load the backend java server. The OS may ask you for approval.
-* Accept the license.
-* Create a new view.
-* DnD signals into the view. 
-* Have fun !
+Here's how to get started with the Generic Log Reader Extension using the Pattern Log Reader:
+
+1. **Create a sample log file** `application.log` with this content:
+   ```
+   [INFO] 04-15-2020 10:44:13 com.example.Application main - Application started
+   [WARN] 04-15-2020 10:44:14 com.example.Service processRequest - Request timeout detected
+   [ERROR] 04-15-2020 10:44:15 com.example.Database connect - Connection failed
+   [INFO] 04-15-2020 10:44:16 com.example.Application main - Retrying connection
+   [INFO] 04-15-2020 10:44:17 com.example.Database connect - Connection established
+   ```
+
+2. **Configure the Pattern Log Reader**:
+   * Go to **impulse Preferences → Serializers**
+   * Right-click on the root element and select **Add Pattern Log Reader**
+   * Choose the predefined configuration: **Log4j [%p] %d{MM-dd-yyyy HH:mm:ss} %c %M - %m%n**
+   * Enable the configuration and save
+
+3. **Open and view your log file**:
+   * Right-click on `application.log` and select **Open with → impulse Viewer** (you may select impulse Viewer as the default option at this point)
+   * On activation, it may take a while (a few seconds) to load the backend Java server. The OS may ask you for approval
+   * Accept the license when prompted
+   * The log entries will be organized hierarchically by logger (com.example.Application, com.example.Service, etc.)
+   * Create a new view
+   * Drag and drop signals from the signal tree into the view
+   * Observe the timeline with color-coded severity levels (INFO, WARN, ERROR)
+   * Hover over entries to see timestamps, methods, and messages
+   * Have fun!
+
+For more complex log formats, see the [Pattern Log Reader documentation](pattern/pattern-log-reader.md) for details on creating custom patterns.
 
 ## License
 
