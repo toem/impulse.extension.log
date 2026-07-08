@@ -317,6 +317,8 @@ public class YamlLogReader extends AbstractLogReader {
     @Override
     protected void parseLogs(IProgress progress, InputStream in) throws ParseException, IOException {
 
+        console.info("Parsing yaml");
+        
         YAMLFactory yfactory = new YAMLFactory();
         YAMLParser yamlReader = yfactory.createParser(new InputStreamReader(in, charSet));
         closable = yamlReader;
@@ -416,8 +418,9 @@ public class YamlLogReader extends AbstractLogReader {
         } catch (Throwable e) {
             if (e instanceof ParseException)
                 throw (ParseException) e;
-            throw new ParseException("Could not parse YAML structure", e);
+            throw new ParseException("Could not parse structure", e);
         }
+        
     }
 
     /**
@@ -639,8 +642,8 @@ public class YamlLogReader extends AbstractLogReader {
                         }
                         if (n == tagSource) {
                             int tag = parseTags(text);
-                            if (tag > 0 && (message.tag == 0 || tag < message.tag)) {
-                                message.tag = tag;
+                            if (tag > 0 && (message.sampleTag == 0 || tag < message.sampleTag)) {
+                                message.sampleTag = tag;
                                 changed |= true;
                             }
                         }

@@ -47,17 +47,23 @@ This section contains the main identification and categorization properties of t
 - **Name pattern**: Pattern for naming imported signals.
 
 
-### Default Properties Section
+### Properties Section
 
-This section provides properties for this log reader that can be overwritten using serializer configurations.
+This section provides default properties for this reader that can be overwritten using serializer configurations.
 
-**Signal Selection Properties**
+- **Domain base**: The time base unit (e.g., `us`).
+- **Char Set**: Character encoding for the log file.
+- **Relative**: Whether timestamps are relative (`true`/`false`).
+- **Add signal with raw lines included**: Option to include a signal with raw log lines (`true`/`false`).
+- **Skip Lines**: Number of lines to skip at the beginning (`0` by default).
+- **Stop After Lines**: Maximum number of lines to process (`-1` for unlimited).
+
+**Additional Configuration Properties**
+
+These properties can be additionally set in configurations.
+
 - **Include**: Regular expression pattern to include specific signals during import. Only signals matching this pattern will be imported into the waveform viewer.
 - **Exclude**: Regular expression pattern to exclude specific signals during import. Signals matching this pattern will be filtered out and not imported.
-
-**Domain Range and Transformation Properties**
-- **Domain base**: The time base unit (e.g., `1us`).
-- **Relative**: Whether timestamps are relative (`true`/`false`).
 - **Start**: Start time position for importing samples. Only value changes at or after this time will be imported (specified in domain units like ns, us, ms).
 - **End**: End time position for importing samples. Only value changes before or at this time will be imported (specified in domain units like ns, us, ms).
 - **Delay**: Time offset to shift all timestamps during import. Positive values delay the waveform, negative values advance it (specified in domain units). Applied before dilation.
@@ -66,11 +72,6 @@ This section provides properties for this log reader that can be overwritten usi
 **Logging and Diagnostics Properties**
 The parser integrates with impulse's console logging system, providing configurable verbosity levels for diagnostic output during the import process. Console properties control the level of detail in parsing progress reports, timing statistics, and error information.
 
-**Log line Properties**
-- **Char Set**: Character encoding for the log file.
-- **Add signal with raw lines included**: Option to include a signal with raw log lines (`true`/`false`).
-- **Skip Lines**: Number of lines to skip at the beginning (`0` by default).
-- **Stop After Lines**: Maximum number of lines to process (`-1` for unlimited).
 
 #### Log Pattern Section
 
@@ -101,7 +102,9 @@ This section displays a table of serializer configuration profiles for the reade
 This dialog allows you to define and test a single log pattern for the Pattern Log Reader.
 
 - **Name**: Enter a name for the pattern (e.g., "Event").
-- **Description**: Short description of the pattern's purpose.
+- **Description**: Short description of the pattern's purpose. When a Signal/Scope Name is defined, this description is applied to the created signal.
+- **Icon**: Select or display an icon for the pattern. When a Signal/Scope Name is defined, this icon is applied to the created signal.
+- **Tags**: Keywords or labels for categorizing. When a Signal/Scope Name is defined, these tags are applied to the created signal.
 - **Enable**: Checkbox to activate or deactivate the pattern.
 - **Test Log Lines**: Paste sample log lines here to test your pattern.
 - **Pattern**: The regular expression used to match and extract log fields.
@@ -124,7 +127,14 @@ Map regex groups to log fields:
   - **Float** (2)
   - **Text** (3)
   - **Enumeration** (4)
+  
+  *Note on Text vs Enumeration*: Both **Text** and **Enumeration** types display text values. Use **Text** only for volatile sequences where each value is likely unique (e.g., unique error messages, stack traces). Use **Enumeration** when the same text values occur repeatedly (e.g., log levels like "ERROR", "WARN", "INFO"). With Enumeration, text values are stored once and referenced, significantly reducing memory usage. With Text, each occurrence is copied into the signal.
 
+- **Format**: Specify how the value should be interpreted or displayed (e.g.):
+  - `hex`: Interpret as hexadecimal number (e.g., `0xFF` → 255).
+  - `dec`: Interpret as decimal number (standard for integers/floats).
+  - Other format descriptors for specialized parsing.
+- **Tags**: Comma-separated keywords or labels to categorize this member (e.g., `important,error-level,verbose`). Tags help with filtering and organization.
 
 ### Domain Value (e.g., time-stamp)
 
@@ -142,7 +152,7 @@ Configure timestamp parsing:
 
 - **Source**: Choose group for timestamp.
 - **Date Format**: Specify format (e.g., MM-dd-yyyy HH:mm:ss).
-- **Domain Unit**: Choose the domain base source.
+- **Domain Unit**: Choose the domain base source (e.g., `ms`).
 - **Extension Mode**: Select extension mode for additional value combination:
   - **Undefined** (0): No extension used.
   - **Float value** (1): Parse extension as floating-point and add to main domain value.
@@ -165,10 +175,18 @@ Configure how signals/scopes are named:
   - **Name extension from source value** (1): Use a group value as an extension to the name.
 
 If **Hierarchy from source value** (2) or **Explicit hierarchy** (4) is chosen, additional fields appear:
-- **Separator**: Specify how hierarchy levels are split (e.g., `.` for dot-separated names).
-- **Prefix**: Add a prefix to distinguish between hierarchical nodes and actual signal names.
+- **Separator**: Specify how hierarchy levels are split (e.g., `\.` for dot-separated names). Enter a regular expression.
+- **Prefix**: Add a prefix to distinguish between a scope and a signal of the same name. This is only required if both parent node and child node have messages.
 
-*Example*: For logger path `top.CPU.cache`, with Separator `.` and Prefix `#`, you get hierarchy `top/CPU/#cache` where `#cache` is the actual signal and `top/CPU` are scopes.
+*Example*: For a logger value `top.CPU.cache` with Separator `\.`:
+
+**Without prefix (empty):**
+- If only `cache` has messages: Scopes `top/CPU` contain signal `cache`
+- If both `CPU` and `cache` have messages: Not possible without prefix - would create name conflict between CPU scope and CPU signal
+
+**With prefix `#`:**
+- If only `cache` has messages: Scopes `top/CPU` contain signal `#cache`  
+- If both `CPU` and `cache` have messages: Scope `top` contains both scope `CPU` and signal `#CPU` (for CPU's own messages); scope `CPU` contains signal `#cache` (for cache's messages)
 
 ### Tag
 
@@ -277,7 +295,7 @@ NOTE00000[216 735 876.000 ns] in top.F4.generics : Calculated load 47%
 ### Step 1: Create a Pattern Log Reader
 
 - Go to **impulse Preferences → Serializers** , then right click on the root element and add a  **Pattern Log Reader**.
-- Set a name, select the character set, and set the time base (e.g., `1ns`).
+- Set a name, select the character set, and set the time base (e.g., `ns`).
 
 ### Step 2: Add Log Patterns
 
@@ -331,10 +349,113 @@ Set **Action** to "Ignore".
 
 ## Known Limitations
 
-- Requires careful pattern setup for complex/mixed logs
-- Multi-line logs need explicit pattern configuration
-- Timestamp parsing depends on correct format and group mapping
-- Not all log formats can be parsed automatically; user intervention may be needed
+--- 
+
+## Data Structure
+
+This section documents the concrete Pattern Log Reader (type 'reader.log.pattern') data model.
+
+### Pattern Log Reader 'reader.log.pattern' 
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| name | string | null | Unique name of the pattern log reader. |
+| iconId | string | null | Optional icon identifier. |
+| helpUrl | string | null | Optional URL for help documentation. |
+| description | string | null | Optional description of the reader's purpose. |
+| enabled | boolean | true | Whether this reader is active. |
+| tags | string | null | Optional comma-separated tags for categorization. |
+| properties | string[][] |   | Properties as described below. |
+
+#### `properties` Field Details
+
+Configuration properties that apply to the entire reader:
+
+| Label | Default | Identifier | Description |
+|---|---|---|---|
+| Include |  | include | Regular expression pattern to include specific signals during import. Only signals matching this pattern will be imported into the waveform viewer. |
+| Exclude |  | exclude | Regular expression pattern to exclude specific signals during import. Signals matching this pattern will be filtered out and not imported. |
+| Start |  | start | Start time position for importing samples. Only value changes at or after this time will be imported (specified in domain units like ns, us, ms). |
+| End |  | end | End time position for importing samples. Only value changes before or at this time will be imported (specified in domain units like ns, us, ms). |
+| Delay |  | delay | Time offset to shift all timestamps during import. Positive values delay the waveform, negative values advance it (specified in domain units). Applied before dilation. |
+| Dilate |  | dilate | Time scaling factor to stretch or compress the temporal dimension of the waveform. Values > 1.0 slow down time, values < 1.0 speed up time. Applied after delay transformation using formula: (time + delay) * dilate. |
+| Domain base | dateTime (1970.01.01.01:00:00:001) | domainBase | The minimum distance between two samples, typically measured in units like nanoseconds (ns) or picoseconds (ps). Defines the granularity of the signal's domain. |
+| Char Set |  | charSet | Char Set |
+| Relative Domain | false | relativeDomain | Apply relative domain values with a zero-indexed signal. This configuration is intended for relative domain bases (e.g., time) rather than absolute domain bases like Date. |
+| Enable Logging | 4 (From majors onwards) | enableLogging | Enables console logging and sets the verbosity level for diagnostic output. |
+| Show Log Output | 1280 (For errors only) | showLogOutput | Configures the threshold for displaying the output console. |
+| Add signal with raw lines includes | false | writeLines |  |
+| Skip Lines | 0 | skipLines |  |
+| Stop After Lines | -1 | stopAfterLines |  |
+
+#### Children
+
+| Child | Type | Cardinality | Notes |
+|---|---|---|---|
+| Log Patter | reader.log.pattern.option | 0..n | Each `reader.log.pattern.option` entry defines a single log parsing pattern within the reader. |
+
+### Log Pattern `reader.log.pattern.option`
+
+#### Core Pattern Fields
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| name | string | null | Name of this log pattern (e.g., "Event", "ISR"). |
+| description | string | null | Description applied to created signals. |
+| iconId | string | null | Icon applied to created signals. |
+| tags | string | null | Tags applied to created signals. |
+| enabled | boolean | true | Whether this pattern is active. |
+| action | integer | 0 | Action when pattern matches: 0=Ignore, 1=Start new sample, 2=Add to previous, 3=Finish sample. |
+| pattern | string | null | Java regular expression for matching log lines. All Regex groups references below are 1-based. |
+| example | string | null | Log example lines for testing the regular expression. |
+
+#### Domain/Time Fields
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| domainMode | integer | 1 | Time parsing mode: 1=Float, 2=Integer, 3=Date, 4=Previous, 5=Per-signal, 6=Incrementing, 7=Per-signal increment, 8=Reception time. |
+| domainSource | integer | 0 | Regex group number for domain value. |
+| domain2Mode | integer | 0 | Extension mode: 0=Undefined, 1=Float, 2=Integer. |
+| domain2Source | integer | 0 | Regex group for extension value. |
+| dateFormat | string | null | Java date format (e.g., `yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'`). |
+| domainUnit | string | null | Domain unit (e.g., `ns`, `us`, `ms`). |
+| domain2Unit | string | null | Extension domain unit. |
+
+#### Member Mapping Fields (Groups 1-25)
+
+Members map regex capture groups to semantic fields:
+
+| Field Pattern | Type | Notes |
+|---|---|---|
+| m1 - m25 | string | Semantic label for each regex group: "Timestamp", "Level", "Logger", "Component", "Method", "Message", "Thread", "EventID", etc. |
+| s1 - s25 | integer | Data type for each member: 0=None, 1=Integer, 2=Float, 3=Text, 4=Enumeration. |
+| f1 - f25 | string | Format descriptor for each member: hex, dec,... |
+| t1 - t25 | string | Tags (comma separated) for each member. |
+
+#### Signal/Scope Naming Fields (name0, name1, name2)
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| nameMode | integer | 1 | Signal naming mode: 1=From source value, 2=Hierarchy, 3=Explicit name, 4=Explicit hierarchy. |
+| name0 | string | null | Explicit signal/hierarchy name (for modes 3-4). |
+| name1Source | integer | 0 | Regex group for signal name (for modes 1-2). |
+| nameSeparator | string | . | Hierarchy separator (e.g., `.` for dot-separated paths). |
+| namePrefix | string | # | Prefix for hierarchy level distinction. |
+| name2Mode | integer | 0 | Extension mode for names: 0=Undefined, 1=Name extension from source. |
+| name2Source | integer | 0 | Regex group for name extension. |
+
+#### Severity Tagging Fields
+
+| Field | Type | Notes |
+|---|---|---|
+| tagSource | integer | Regex group for severity/status matching. |
+| errorPattern | string | Regex pattern for error entries (e.g., `ERROR\|FATAL`). |
+| warningPattern | string | Regex pattern for warnings (e.g., `WARN\|WARNING`). |
+| infoPattern | string | Regex pattern for info entries (e.g., `INFO\|NOTE`). |
+| debugPattern | string | Regex pattern for debug entries (e.g., `DEBUG\|TRACE`). |
+| fatalPattern | string | Regex pattern for fatal entries (e.g., `CRITICAL`). |
+| successPattern | string | Optional regex pattern for success entries. |
+| tracePattern | string | Optional regex pattern for trace entries. |
 
 
 ## Predefined Pattern Log Reader XML Examples
@@ -347,7 +468,7 @@ Below are several predefined pattern log reader configurations in XML format. Th
         <domainBase>n</domainBase>
         <enabled>false</enabled>
     </properties>
-    <reader.log.pattern.option name="Event" warningPattern="WARN" action="1" s1="4" s2="4" s3="4" tagSource="1" pattern="\[(\s*?\S*?\s*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from [%p] %c %M - %m%n" errorPattern="ERROR" member4="Message" member2="Logger" member3="Method" name1Source="2" member1="Level" fatalPattern="FATAL" domainMode="6" nameMode="1">
+    <reader.log.pattern.option name="Event" warningPattern="WARN" action="1" s1="4" s2="4" s3="4" tagSource="1" pattern="\[(\s*?\S*?\s*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from [%p] %c %M - %m%n" errorPattern="ERROR" m4="Message" m2="Logger" m3="Method" name1Source="2" m1="Level" fatalPattern="FATAL" domainMode="6" nameMode="1">
         <example>[WARN] de.toem.impulse.test.secondary.Log3 log - get Sinus Wave -0.564085071066512&lt;br/&gt;[TRACE] de.toem.impulse.test.primary.Log1 log -  PCI: MMCONFIG at [mem 0xe0000000-0xefffffff&lt;br/&gt;[TRACE] de.toem.impulse.test.primary.Log1 log -  No Local Variables are initialized for Method [_GTF&lt;br/&gt;[INFO] de.toem.impulse.test.secondary.Log2 log -  ACPI: Local APIC address 0xfee00000</example>
     </reader.log.pattern.option>
 </reader.log.pattern>
@@ -356,7 +477,7 @@ Below are several predefined pattern log reader configurations in XML format. Th
         <relativeDomainValue>true</relativeDomainValue>
         <enabled>false</enabled>
     </properties>
-    <reader.log.pattern.option name="Event" domainSource="2" warningPattern="WARN" dateFormat="MM-dd-yyyy HH:mm:ss" action="1" s1="4" s2="0" s3="4" s4="4" tagSource="1" pattern="\[(\s*?\S*?\s*?)\] (\S+\S+-\S+\S+-\S+\S+\S+\S+ \S+\S+:\S+\S+:\S+\S+) (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from [%p] %d{MM-dd-yyyy HH:mm:ss} %c %M - %m%n" errorPattern="ERROR" member4="Method" member5="Message" member2="Timestamp" member3="Logger" name1Source="3" member1="Level" fatalPattern="FATAL" domainMode="3" nameMode="1">
+    <reader.log.pattern.option name="Event" domainSource="2" warningPattern="WARN" dateFormat="MM-dd-yyyy HH:mm:ss" action="1" s1="4" s2="0" s3="4" s4="4" tagSource="1" pattern="\[(\s*?\S*?\s*?)\] (\S+\S+-\S+\S+-\S+\S+\S+\S+ \S+\S+:\S+\S+:\S+\S+) (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from [%p] %d{MM-dd-yyyy HH:mm:ss} %c %M - %m%n" errorPattern="ERROR" m4="Method" m5="Message" m2="Timestamp" m3="Logger" name1Source="3" m1="Level" fatalPattern="FATAL" domainMode="3" nameMode="1">
         <example>[WARN] 04-15-2020 10:44:13 de.toem.impulse.test.secondary.Log3 log - get Sinus Wave -0.564085071066512&lt;br/&gt;[TRACE] 04-15-2020 10:44:13 de.toem.impulse.test.primary.Log1 log -  No Local Variables are initialized for Method [_GTF&lt;br/&gt;[TRACE] 04-15-2020 10:44:13 de.toem.impulse.test.primary.Log1 log -  PCI: MMCONFIG at [mem 0xe0000000-0xefffffff&lt;br/&gt;[INFO] 04-15-2020 10:44:14 de.toem.impulse.test.secondary.Log2 log -  ACPI: Local APIC address 0xfee00000</example>
     </reader.log.pattern.option>
 </reader.log.pattern>
@@ -364,7 +485,7 @@ Below are several predefined pattern log reader configurations in XML format. Th
     <properties len="1">
         <enabled>false</enabled>
     </properties>
-    <reader.log.pattern.option name="Event" domainSource="2" warningPattern="WARN" action="1" s1="4" s2="0" s3="4" s4="4" domainUnit="ms" tagSource="1" pattern="\[(\s*?\S*?\s*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from [%p] %r %c %M - %m%n" errorPattern="ERROR" member4="Method" member5="Message" member2="Timestamp" member3="Logger" name1Source="3" member1="Level" fatalPattern="FATAL" domainMode="2" nameMode="1">
+    <reader.log.pattern.option name="Event" domainSource="2" warningPattern="WARN" action="1" s1="4" s2="0" s3="4" s4="4" domainUnit="ms" tagSource="1" pattern="\[(\s*?\S*?\s*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from [%p] %r %c %M - %m%n" errorPattern="ERROR" m4="Method" m5="Message" m2="Timestamp" m3="Logger" name1Source="3" m1="Level" fatalPattern="FATAL" domainMode="2" nameMode="1">
         <example>[WARN] 1149 de.toem.impulse.test.secondary.Log3 log - get Sinus Wave -0.564085071066512&lt;br/&gt;[TRACE] 1148 de.toem.impulse.test.primary.Log1 log -  PCI: MMCONFIG at [mem 0xe0000000-0xefffffff&lt;br/&gt;[TRACE] 1148 de.toem.impulse.test.primary.Log1 log -  No Local Variables are initialized for Method [_GTF&lt;br/&gt;[INFO] 1361 de.toem.impulse.test.secondary.Log2 log -  ACPI: Local APIC address 0xfee00000&lt;br/&gt;[DEBUG] 1361 de.toem.impulse.test.primary.Log1 log -  Switched APIC routing to cluster x2apic.</example>
     </reader.log.pattern.option>
 </reader.log.pattern>
@@ -373,7 +494,7 @@ Below are several predefined pattern log reader configurations in XML format. Th
         <relativeDomainValue>true</relativeDomainValue>
         <enabled>false</enabled>
     </properties>
-    <reader.log.pattern.option name="Event" domainSource="1" warningPattern="WARN" action="1" s2="4" s3="4" tagSource="2" pattern="(\S+\S+\S+\S+-\S+\S+-\S+\S+ \S+\S+:\S+\S+:\S+\S+,\S+\S+\S+) \[(\s*?\S*?\s*?)\] (\s*?\S*?\s*?) – (.*)" description="Generated from %d [%p] %c{1} – %m%n" errorPattern="ERROR" member4="Message" member2="Level" member3="Logger" name1Source="3" member1="Timestamp" fatalPattern="FATAL" domainMode="3" nameMode="1">
+    <reader.log.pattern.option name="Event" domainSource="1" warningPattern="WARN" action="1" s2="4" s3="4" tagSource="2" pattern="(\S+\S+\S+\S+-\S+\S+-\S+\S+ \S+\S+:\S+\S+:\S+\S+,\S+\S+\S+) \[(\s*?\S*?\s*?)\] (\s*?\S*?\s*?) – (.*)" description="Generated from %d [%p] %c{1} – %m%n" errorPattern="ERROR" m4="Message" m2="Level" m3="Logger" name1Source="3" m1="Timestamp" fatalPattern="FATAL" domainMode="3" nameMode="1">
         <example>2020-04-15 10:44:13,845 [WARN] Log3 – get Sinus Wave -0.564085071066512&lt;br/&gt;2020-04-15 10:44:13,844 [TRACE] Log1 –  No Local Variables are initialized for Method [_GTF&lt;br/&gt;2020-04-15 10:44:13,844 [TRACE] Log1 –  PCI: MMCONFIG at [mem 0xe0000000-0xefffffff&lt;br/&gt;2020-04-15 10:44:14,057 [INFO] Log2 –  ACPI: Local APIC address 0xfee00000</example>
     </reader.log.pattern.option>
 </reader.log.pattern>
@@ -382,13 +503,13 @@ Below are several predefined pattern log reader configurations in XML format. Th
         <relativeDomainValue>true</relativeDomainValue>
         <enabled>false</enabled>
     </properties>
-    <reader.log.pattern.option name="Log Pattern" domainSource="1" warningPattern="WARN" dateFormat="HH:mm:ss.SSS" action="1" s1="0" s2="4" s3="4" s4="4" tagSource="3" pattern="(\S+\S+:\S+\S+:\S+\S+\.\S+\S+\S+) \[(.*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" errorPattern="ERROR" member4="Logger" member5="Message" member2="Thread" member3="Level" name1Source="4" member1="Timestamp" fatalPattern="FATAL" domainMode="1" nameMode="2"/>
+    <reader.log.pattern.option name="Log Pattern" domainSource="1" warningPattern="WARN" dateFormat="HH:mm:ss.SSS" action="1" s1="0" s2="4" s3="4" s4="4" tagSource="3" pattern="(\S+\S+:\S+\S+:\S+\S+\.\S+\S+\S+) \[(.*?)\] (\s*?\S*?\s*?) (\s*?\S*?\s*?) \- (.*)" description="Generated from %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" errorPattern="ERROR" m4="Logger" m5="Message" m2="Thread" m3="Level" name1Source="4" m1="Timestamp" fatalPattern="FATAL" domainMode="1" nameMode="2"/>
 <reader.log.pattern name="syslog RFC3164">
     <properties len="2">
         <domainBase>dateTime</domainBase>
         <enabled>false</enabled>
     </properties>
-    <reader.log.pattern.option name="Events" domainSource="2" dateFormat="MMM dd HH:mm:ss" action="1" s1="4" s2="0" pattern="&lt;?([0-9]*)&gt;?([A-Z][a-z][a-z]\s{1,2}\d{1,2}\s\d{2}[:]\d{2}[:]\d{2})\s([\w][\w\d\.@-]*)\s(.*)" member4="Message" member2="Timestamp" member3="Header" member1="Priority" domainMode="3">
+    <reader.log.pattern.option name="Events" domainSource="2" dateFormat="MMM dd HH:mm:ss" action="1" s1="4" s2="0" pattern="&lt;?([0-9]*)&gt;?([A-Z][a-z][a-z]\s{1,2}\d{1,2}\s\d{2}[:]\d{2}[:]\d{2})\s([\w][\w\d\.@-]*)\s(.*)" m4="Message" m2="Timestamp" m3="Header" m1="Priority" domainMode="3">
         <example>&lt;135&gt;May 11 09:33:36 thomas  No Local Variables are initialized for Method [_GTF&lt;br/&gt;&lt;132&gt;May 11 09:33:36 thomas get Sinus Wave 0.9629702887498031&lt;br/&gt;Apr 24 08:55:18 thomas rsyslogd:  [origin software="rsyslogd" swVersion="8.1901.0" x-pid="1200" x-info="https://www.rsyslog.com"] rsyslogd was HUPed&lt;br/&gt;Apr 24 08:55:19 thomas NetworkManager[1173]: &lt;info&gt;  [1587711319.0627] Loaded device plugin: NMBluezManager (/usr/lib/x86_64-linux-gnu/NetworkManager/1.20.4/libnm-device-plugin-bluetooth.so)</example>
     </reader.log.pattern.option>
 </reader.log.pattern>
@@ -397,8 +518,9 @@ Below are several predefined pattern log reader configurations in XML format. Th
         <domainBase>dateTime</domainBase>
         <enabled>false</enabled>
     </properties>
-    <reader.log.pattern.option name="Events" domainSource="1" dateFormat="yyyy-MM-dd'T'HH:mm:ss.SSSX" action="1" s1="0" pattern="(?:(\d{4}[-]\d{2}[-]\d{2}[T]\d{2}[:]\d{2}[:]\d{2}(?:\.\d{1,6})?(?:[+-]\d{2}[:]\d{2}|Z)?)|-)\s(?:([\w][\w\d\.@-]*)|-)\s(.*)" member2="Header" member3="Message" member1="Timestamp" domainMode="3">
+    <reader.log.pattern.option name="Events" domainSource="1" dateFormat="yyyy-MM-dd'T'HH:mm:ss.SSSX" action="1" s1="0" pattern="(?:(\d{4}[-]\d{2}[-]\d{2}[T]\d{2}[:]\d{2}[:]\d{2}(?:\.\d{1,6})?(?:[+-]\d{2}[:]\d{2}|Z)?)|-)\s(?:([\w][\w\d\.@-]*)|-)\s(.*)" m2="Header" m3="Message" m1="Timestamp" domainMode="3">
         <example>2020-05-11T09:33:36.097+02:00 thomas /home/thomas/Workspaces/impulse.test/de.toem.impulse.test/bin/log4j2.xml 5886 - -  No Local Variables are initialized for Method [_GTF&lt;br/&gt;2020-05-11T09:33:36.306+02:00 thomas /home/thomas/Workspaces/impulse.test/de.toem.impulse.test/bin/log4j2.xml 5886 - - get Sinus Wave 0.9629702887498031&lt;br/&gt;2020-05-11T09:33:36.309+02:00 thomas /home/thomas/Workspaces/impulse.test/de.toem.impulse.test/bin/log4j2.xml 5886 - -  rcu: &lt;br/&gt;2020-05-11T09:33:36.311+02:00 thomas /home/thomas/Workspaces/impulse.test/de.toem.impulse.test/bin/log4j2.xml 5886 - -  ACPI: Local APIC address 0xfee00000</example>
     </reader.log.pattern.option>
 </reader.log.pattern>
 ```
+

@@ -281,6 +281,8 @@ public class PatternLogReader extends AbstractLogReader {
     @Override
     protected void parseLogs(IProgress progress, InputStream in) throws ParseException, IOException {
 
+        console.info("Parsing pattern");
+        
         BufferedReader reader = new BufferedReader(new InputStreamReader(in, charSet));
         closable = reader;
 
@@ -460,8 +462,8 @@ public class PatternLogReader extends AbstractLogReader {
                     }
                     if (n == tagSource) {
                         int tag = parseTags(text);
-                        if (tag > 0 && (message.tag == 0 || tag < message.tag)) {
-                            message.tag = tag;
+                        if (tag > 0 && (message.sampleTag == 0 || tag < message.sampleTag)) {
+                            message.sampleTag = tag;
                             changed |= true;
                         }
                     }

@@ -13,13 +13,13 @@ import de.toem.toolkits.pattern.element.FieldAnnotation;
 import de.toem.toolkits.pattern.element.ICell;
 import de.toem.toolkits.pattern.element.instancer.AbstractDefaultInstancer;
 import de.toem.toolkits.pattern.element.instancer.IInstancer;
+import de.toem.toolkits.pattern.ide.IConsoleStream;
 import de.toem.toolkits.pattern.ide.Ide;
 import de.toem.toolkits.pattern.registry.RegistryAnnotation;
 import de.toem.toolkits.ui.controller.base.ButtonController;
 import de.toem.toolkits.ui.controller.base.RadioSetController;
 import de.toem.toolkits.ui.controller.base.TextBoxController;
-import de.toem.toolkits.ui.controller.base.TextController;
-import de.toem.toolkits.ui.proposal.PatternContentProposal;
+import de.toem.toolkits.ui.controller.base.TextController.RegExTextController;
 import de.toem.toolkits.ui.tlk.ITlkControlProvider;
 import de.toem.toolkits.ui.tlk.TLK;
 import de.toem.toolkits.utils.text.MultilineText;
@@ -198,8 +198,8 @@ public class PatternLogOption extends AbstractLogOption {
                     tlk().ld(cols(), TLK.FILL, TLK.NO_HINT, TLK.FILL, 5), TLK.LABEL | TLK.BORDER | TLK.MULTI | TLK.V_SCROLL,
                     I18n.PatternConfigurationDialog_TestLines);
 
-            tlk().addText(container(), new TextController(editor(), field("pattern")).add(new PatternContentProposal()),
-                    tlk().ld(cols() - 1, TLK.GRAB, TLK.NO_HINT, TLK.FILL, TLK.DEFAULT), TLK.LABEL | TLK.BORDER, I18n.General_Pattern);
+            tlk().addText(container(), new RegExTextController(editor(), field("pattern")),
+                    tlk().ld(cols() - 1, TLK.GRAB, TLK.NO_HINT, TLK.FILL, TLK.DEFAULT), TLK.LABEL | TLK.BORDER, I18n.General_Pattern,null,I18n.General_Pattern_Description);
             tlk().addButton(container(), new ButtonController(editor(), null) {
 
                 @Override
@@ -235,7 +235,9 @@ public class PatternLogOption extends AbstractLogOption {
                         message += e.getMessage();
                     }
                     Ide.showConsole(Ide.DEFAULT_CONSOLE);
-                    Ide.defaultConsoleStream(Ide.DEFAULT_CONSOLE).println(message);
+                    IConsoleStream stream = Ide.defaultConsoleStream(Ide.DEFAULT_CONSOLE);
+                    if (stream != null)
+                        stream.println(message);
 
                 }
             }, tlk().ld(1, TLK.RIGHT, TLK.DEFAULT, TLK.FILL, TLK.DEFAULT), TLK.NULL, I18n.General_Test, null);

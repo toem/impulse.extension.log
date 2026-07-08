@@ -1,0 +1,13 @@
+// ============================================================================
+// Test Suite: EDA Waveform Format Readers
+// Purpose: Comprehensive test suite for waveform file format readers
+// Coverage: FST, VCD, FSDB, WLF formats
+// ============================================================================
+
+// ============================================================================
+// Section 1: FTR Format Tests
+// ============================================================================
+
+// FST Native Reader: Direct binary parsing implementation
+//include  fst/fst-native-reader-test.jx;
+

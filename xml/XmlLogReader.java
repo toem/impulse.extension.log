@@ -318,7 +318,9 @@ public class XmlLogReader extends AbstractLogReader {
     @Override
     protected void parseLogs(IProgress progress, InputStream in) throws ParseException, IOException {
 
-        if (getTypedProperty("xmlFragment", Boolean.class)) {
+        console.info("Parsing xml");
+        
+        if (getTypedProperty("xmlFragment", false)) {
             in = new SequenceInputStream(Collections.enumeration(Arrays.asList(
                     new InputStream[] { new ByteArrayInputStream("<dummy>".getBytes()), in, new ByteArrayInputStream("</dummy>".getBytes()), })));
         }
@@ -678,8 +680,8 @@ public class XmlLogReader extends AbstractLogReader {
                         }
                         if (n == tagSource) {
                             int tag = parseTags(text);
-                            if (tag > 0 && (message.tag == 0 || tag < message.tag)) {
-                                message.tag = tag;
+                            if (tag > 0 && (message.sampleTag == 0 || tag < message.sampleTag)) {
+                                message.sampleTag = tag;
                                 changed |= true;
                             }
                         }
@@ -756,8 +758,8 @@ public class XmlLogReader extends AbstractLogReader {
                     }
                     if (XmlLogOption.SOURCE_TEXT == tagSource) {
                         int tag = parseTags(text);
-                        if (tag > 0 && (message.tag == 0 || tag < message.tag)) {
-                            message.tag = tag;
+                        if (tag > 0 && (message.sampleTag == 0 || tag < message.sampleTag)) {
+                            message.sampleTag = tag;
                             changed |= true;
                         }
                     }
